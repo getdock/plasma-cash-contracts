@@ -1,12 +1,11 @@
 from hexbytes import HexBytes
-from helpers.web3Provider import w3
+from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers.sparse_merkle_tree import SparseMerkleTree
 import random
 import rlp
 from helpers import instances
 
 # account password
-pwd = 'passw0rd'
 
 # function to generate dummy tx that will be included in sparse merkle tree.
 # The reason of generating dummy tx is just so we wont have a sparse merkle
@@ -49,7 +48,7 @@ def tx(token_id, prevBlock, denomination, to, address):
         tx_hash = w3.soliditySha3(['uint64'], [token_id])
 
         # unlocking account so we can sign the tx_hash.
-        w3.personal.unlockAccount(address, pwd)
+        w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
         # signing the hash with the address provided.
         signature = w3.eth.sign(address, data=tx_hash)
@@ -68,7 +67,7 @@ def tx(token_id, prevBlock, denomination, to, address):
         # the hash of the tx encoded bytes.
         tx_hash = w3.soliditySha3(['bytes'], [tx])
         # unlocking account to sign the tx_hash
-        w3.personal.unlockAccount(address, pwd)
+        w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
         # signing tx_hash with the address provided
         signature = w3.eth.sign(address, data=tx_hash)
 

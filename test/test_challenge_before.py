@@ -1,8 +1,7 @@
 import pytest
 
-from fixtures.const import COIN_DENOMINATION, DEFAULT_PASSWORD
+from fixtures.const import COIN_DENOMINATION, DEFAULT_PASSWORD, w3
 from helpers import instances, fetcher, generate, exit, challenges
-from helpers.web3Provider import w3
 
 
 def test_owned_coin(setup_participate):

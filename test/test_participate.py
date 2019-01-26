@@ -1,8 +1,7 @@
 import pytest
 
-from fixtures.const import COIN_DENOMINATION, ETHER_NAME
+from fixtures.const import COIN_DENOMINATION, ETHER_NAME, w3
 from helpers import participate, instances, erc20
-from helpers.web3Provider import w3
 
 
 def test_successful_participate(accounts):

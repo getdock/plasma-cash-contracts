@@ -1,7 +1,6 @@
-from helpers.web3Provider import w3
+from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers import instances
 
-pwd = 'passw0rd'
 
 '''
     EstimateGas script deals with estimating gas cost of all functions that
@@ -104,7 +103,7 @@ def challenge_before(
 
     plasma_instance = instances.plasma_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.challengeBefore(
         token_id,
         tx_bytes,
@@ -134,7 +133,7 @@ def respondchallenge_before(
 
     plasma_instance = instances.plasma_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.respondChallengeBefore(
         token_id,
         challengingtx_hash,
@@ -163,7 +162,7 @@ def challengeBetween(
 
     plasma_instance = instances.plasma_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.challengeBetween(
         token_id,
         block_number,
@@ -191,7 +190,7 @@ def challengeAfter(
 
     plasma_instance = instances.plasma_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.challengeAfter(
         token_id,
         challengingblock_number,
@@ -209,7 +208,7 @@ def participate(address, amount):
 
     plasma_instance = instances.plasma_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.participate(
         amount).estimateGas({'from': address})
 
@@ -221,7 +220,7 @@ def withdrawBonds(address):
 
     plasma_instance = instances.plasma_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.withdrawBonds().estimateGas({
         'from': address})
 
@@ -248,7 +247,7 @@ def erc20Approve(approveAddress, address, amount):
 
     erc20Instance = instances.erc20_instance
 
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = erc20Instance.functions.approve(
         approveAddress, amount).estimateGas({'from': address})
 

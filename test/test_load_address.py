@@ -1,6 +1,5 @@
-from fixtures.const import DEFAULT_PASSWORD
+from fixtures.const import DEFAULT_PASSWORD, w3
 from helpers import instances, estimate_gas
-from helpers.web3Provider import w3
 
 
 # only owner can successfully load plasma address

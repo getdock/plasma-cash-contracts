@@ -1,8 +1,5 @@
-from helpers.web3Provider import w3
+from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers import instances, fetcher, estimate_gas
-
-# account password
-pwd = 'passw0rd'
 
 # participate function is used to participate on Plasma.
 # address: the user's address who wants to participate.
@@ -18,7 +15,7 @@ def participate(address, nrOfTokens, amount):
         gas = estimate_gas.participate(address, amount)
 
         # unlocking account so we can call function participate.
-        w3.personal.unlockAccount(address, pwd)
+        w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
         # calling participate function of PlasmaContract.
         p = plasma_instance.functions.participate(
             amount).transact({'from': address, 'gas': gas})

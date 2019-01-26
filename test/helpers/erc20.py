@@ -1,7 +1,6 @@
-from helpers.web3Provider import w3
+from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers import instances, estimate_gas
 
-pwd = 'passw0rd'
 
 # transfer function to handle erc20 transfers to users
 # address: the address where tokens are being transafered.
@@ -44,7 +43,7 @@ def approve(approveAddress, address, amount):
     gas = estimate_gas.erc20Approve(approveAddress, address, amount)
 
     # unlocking account so we can call functions
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling approve function on erc20 contract.
     approve1 = erc20Instance.functions.approve(

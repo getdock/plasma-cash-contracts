@@ -1,9 +1,6 @@
-from helpers.web3Provider import w3
+from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers import instances
 import time
-
-# password of crated accounts using parity requests
-pwd = 'passw0rd'
 
 # startExit calling PlasmaContract startExit function.
 # coinId: ID of the coin which user wants to exit.
@@ -30,7 +27,7 @@ def start_exit(
     erc20Instance = instances.erc20_instance
 
     # unlocking account so we can call startExit function
-    w3.personal.unlockAccount(addr, pwd)
+    w3.personal.unlockAccount(addr, DEFAULT_PASSWORD)
     # getting the gas cost of startExit function.
     gas = plasma_instance.functions.startExit(
         coinId,
@@ -43,7 +40,7 @@ def start_exit(
     ).estimateGas({'from': addr, 'value': w3.toWei(0.1, 'ether')})
 
     # unlocking account so we can call startExit function.
-    w3.personal.unlockAccount(addr, pwd)
+    w3.personal.unlockAccount(addr, DEFAULT_PASSWORD)
     # calling startExit function on PlasmaContract.
     t = plasma_instance.functions.startExit(
         coinId,
@@ -86,7 +83,7 @@ def finish_exit(coinId, address):
     '''
 
     # unlocking account so we can call finalizeExit function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling finalizeExit function on PlasmaContract.
     final = plasma_instance.functions.finalizeExit(
@@ -123,14 +120,14 @@ def finish_exit(coinId, address):
 
     # unlocking account so we can find how much gas is used by withdrawBonds
     # function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # getting the gas cost of withdrawBonds function.
     gas = plasma_instance.functions.withdrawBonds().estimateGas({
         'from': address})
 
     # unlocking account so we can call withdrawBonds function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling withdrawBonds function on PlasmaContract.
     t = plasma_instance.functions.withdrawBonds().transact(
@@ -152,14 +149,14 @@ def finish_exit(coinId, address):
     balanceBefore = erc20Instance.functions.balanceOf(address).call()
 
     # unlocking account so we can call withdraw function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # getting the gas cost of withdraw function.
     gas = plasma_instance.functions.withdraw(
         coinId).estimateGas({'from': address})
 
     # unlocking account so we can call withdraw function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling withdraw function on PlasmaContract.
     t = plasma_instance.functions.withdraw(
@@ -184,7 +181,7 @@ def finish_exits(tokens, address):
     time.sleep(3)
 
     # unlocking account so we can call finalizeExit function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling finalizeExit function on PlasmaContract.
     t = plasma_instance.functions.finalizeExits(
@@ -202,14 +199,14 @@ def cancel_exit(coinId, address):
 
     # unlocking account so we can find how much gas is used by cancelExit
     # function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # getting the gas cost of withdraw function.
     gas = plasma_instance.functions.cancelExit(
         coinId).estimateGas({'from': address})
 
     # unlocking account so we can call cancelExit function.
-    w3.personal.unlockAccount(address, pwd)
+    w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling cancelExit function on PlasmaContract.
     cancelExit = plasma_instance.functions.cancelExit(

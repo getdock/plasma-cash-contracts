@@ -1,4 +1,4 @@
-from helpers.web3Provider import w3
+from fixtures.const import w3
 import json
 from helpers import instances, estimate_gas
 

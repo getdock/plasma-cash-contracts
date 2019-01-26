@@ -1,8 +1,7 @@
-from helpers.web3Provider import w3
 import rlp
 import time
 from helpers import instances, estimate_gas
-from fixtures.const import DEFAULT_PASSWORD, ETHER_NAME
+from fixtures.const import DEFAULT_PASSWORD, ETHER_NAME, w3
 
 """
     challenges.py

@@ -1,4 +1,4 @@
-from helpers.web3Provider import w3
+from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers import deployer, parity, instances
 import pytest
 
@@ -52,7 +52,7 @@ def test_unauthorized_user_submition(accounts):
         gas = plasma_instance.functions.submitBlock(
             0, root).estimateGas({'from': alice_addr})
 
-        w3.personal.unlockAccount(alice_addr, 'passw0rd')
+        w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
         submition = plasma_instance.functions.submitBlock(
             0, root).transact({'from': alice_addr, 'gas': gas})
         w3.eth.waitForTransactionReceipt(submition)
