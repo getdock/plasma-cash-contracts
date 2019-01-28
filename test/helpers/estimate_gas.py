@@ -78,10 +78,10 @@ def PlasmaContract(plasmadata):
 # plasmaAddress: parameter of loadPlasmaAddress() on erc721 token
 def loadAddress(plasmaAddress):
 
-    erc721Instance = instances.erc721_instance
+    erc721_instance = instances.erc721_instance
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
-    gas = erc721Instance.functions.loadPlasmaAddress(
+    gas = erc721_instance.functions.loadPlasmaAddress(
         plasmaAddress).estimateGas({'from': w3.eth.accounts[0]})
     return gas
 
@@ -231,10 +231,10 @@ def withdrawBonds(address):
 # amount: the amount to be send
 def erc20Transfer(to, amount):
 
-    erc20Instance = instances.erc20_instance
+    erc20_instance = instances.erc20_instance
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
-    gas = erc20Instance.functions.transfer(
+    gas = erc20_instance.functions.transfer(
         to, amount).estimateGas({'from': w3.eth.accounts[0]})
 
     return gas
@@ -245,10 +245,10 @@ def erc20Transfer(to, amount):
 # amount: amount to approve
 def erc20Approve(approveAddress, address, amount):
 
-    erc20Instance = instances.erc20_instance
+    erc20_instance = instances.erc20_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
-    gas = erc20Instance.functions.approve(
+    gas = erc20_instance.functions.approve(
         approveAddress, amount).estimateGas({'from': address})
 
     return gas

@@ -9,6 +9,7 @@ from helpers import parity, deployer, erc20, participate, instances
 @pytest.fixture(scope='module')
 def accounts() -> List:
     accounts = setup_accounts()
+    instances = deployer.deploy_all_contracts(w3.eth.defaultAccount)
     yield accounts
 
     for i in accounts:
@@ -19,6 +20,7 @@ def accounts() -> List:
 def setup_participate() -> Tuple[List, List]:
     """Setup accounts on a parity dev node and participate some coins with the first account."""
     accounts = setup_accounts()
+    instances = deployer.deploy_all_contracts(w3.eth.defaultAccount)
     coins = participate_account(accounts[1].address)
     yield accounts, coins
 
@@ -34,13 +36,16 @@ def setup_accounts(count: int = 8) -> List:
         parity.send_transaction(i.address, w3.eth.accounts[0])
     # defaultAccount is the default account | if there is no ({'from'}) provided the account[0] will be taken as default caller
     w3.eth.defaultAccount = w3.eth.accounts[0]
-    # deployer deploying the contracts in localhost web3 provider and also setting the global instances of contracts
-    deployer.deployContracts()
     return accounts
 
 
 def participate_account(account_address) -> List:
-    """Make the given account participate."""
+    """
+    Make the given account participate.
+
+    :param account_address: address to the account to participate
+    :return: list of coins
+    """
     # getting the plasma_instance set by deployer.
     plasma_instance = instances.plasma_instance
     # getting deployed plasma address

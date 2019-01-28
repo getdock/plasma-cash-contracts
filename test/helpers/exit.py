@@ -23,8 +23,8 @@ def start_exit(
 
     # getting the plasma_instance set by deployer.
     plasma_instance = instances.plasma_instance
-    # getting the erc20Instance set by deployer.
-    erc20Instance = instances.erc20_instance
+    # getting the erc20_instance set by deployer.
+    erc20_instance = instances.erc20_instance
 
     # unlocking account so we can call startExit function
     w3.personal.unlockAccount(addr, DEFAULT_PASSWORD)
@@ -69,10 +69,10 @@ def finish_exit(coinId, address):
 
     # getting the plasma_instance set by deployer.
     plasma_instance = instances.plasma_instance
-    # getting the erc20Instance set by deployer.
-    erc20Instance = instances.erc20_instance
-    # getting the erc721Instance set by deployer.
-    erc721Instance = instances.erc721_instance
+    # getting the erc20_instance set by deployer.
+    erc20_instance = instances.erc20_instance
+    # getting the erc721_instance set by deployer.
+    erc721_instance = instances.erc721_instance
 
     # time required to wait for MATURITY_PERIOD(on mainnet = 1 week / 5 days)
     time.sleep(3)
@@ -94,7 +94,7 @@ def finish_exit(coinId, address):
     assert w3.eth.waitForTransactionReceipt(final).status == 1
 
     # calling ownerOfToken function on DockPlasmaToken.
-    newOwner = erc721Instance.functions.ownerOfToken(coinId).call()
+    newOwner = erc721_instance.functions.ownerOfToken(coinId).call()
 
     # owner of the coin has to be the one who fulfills the requirements to execute finalizeExit.
     # asserting the owner of the coin, newOwner address is equal with address.
@@ -146,7 +146,7 @@ def finish_exit(coinId, address):
     assert balance[1] == expected
 
     # calling  balanceOf ERC20DockToken contract.
-    balanceBefore = erc20Instance.functions.balanceOf(address).call()
+    balanceBefore = erc20_instance.functions.balanceOf(address).call()
 
     # unlocking account so we can call withdraw function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -164,7 +164,7 @@ def finish_exit(coinId, address):
     w3.eth.waitForTransactionReceipt(t)
 
     # calling  balanceOf ERC20DockToken contract.
-    balance = erc20Instance.functions.balanceOf(address).call()
+    balance = erc20_instance.functions.balanceOf(address).call()
 
     # asserting balance of the user that withdraws the coin, current balance
     # has to be equal with balance before calling withdrawn function  and the

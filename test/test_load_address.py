@@ -38,14 +38,14 @@ def test_successful_load_addresses_on_plasma(setup_participate):
     gas = estimate_gas.loadAddressesOnPlasma(
         instances.erc20_instance.address,
         instances.erc721_instance.address,
-        instances.checksInstance.address
+        instances.checks_instance.address
     )
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     tx = instances.plasma_instance.functions.setAddresses(
         instances.erc20_instance.address,
         instances.erc721_instance.address,
-        instances.checksInstance.address
+        instances.checks_instance.address
     ).transact(
         {'from': w3.eth.accounts[0], 'gas': gas}
     )
@@ -62,14 +62,14 @@ def test_unsuccessful_load_addresses_on_plasma(setup_participate):
     gas = estimate_gas.loadAddressesOnPlasma(
         instances.erc20_instance.address,
         instances.erc721_instance.address,
-        instances.checksInstance.address
+        instances.checks_instance.address
     )
 
     w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
     tx = instances.plasma_instance.functions.setAddresses(
         instances.erc20_instance.address,
         instances.erc721_instance.address,
-        instances.checksInstance.address
+        instances.checks_instance.address
     ).transact(
         {'from': alice_addr, 'gas': gas}
     )
