@@ -6,20 +6,20 @@ from helpers import fetcher, generate, exit, challenges
 
 def test_owned_coin(setup_participate):
     """Assert the coins returned by participate are created as they should."""
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     alice_coins = fetcher.owned_coins(alice_addr)
     assert coins == alice_coins
 
 
-def test_failing_challenge1(setup_participate):
-    '''
+def test_failing_challenge_1(setup_participate):
+    """
 
     ___Scenario:
         Trying to challenge a Exit that doesnt exist
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -72,15 +72,15 @@ def test_failing_challenge1(setup_participate):
         # Exit doesnt exist!
 
 
-def test_successful_challenge1(setup_participate):
-    '''
+def test_successful_challenge_1(setup_participate):
+    """
     ___Scenario : bob tries to do a double spend
                   alice legitimately sends coin to bob
                   bob sends coin to oscar
                   bob sends coin to charlie
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -143,14 +143,14 @@ def test_successful_challenge1(setup_participate):
     # oscar challenges succsefully
 
 
-def test_failing_challenge2(setup_participate):
-    '''
+def test_failing_challenge_2(setup_participate):
+    """
 
     ___Scenario :
         Same as above but with invalid signature
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -219,13 +219,13 @@ def test_failing_challenge2(setup_participate):
     exit.finish_exit(coins[2], charlie_addr)
 
 
-def test_failing_challenge3(setup_participate):
-    '''
+def test_failing_challenge_3(setup_participate):
+    """
     ___Scenario :
         Same as above but with invalid merkle proof provided
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -292,12 +292,12 @@ def test_failing_challenge3(setup_participate):
     exit.finish_exit(coins[3], charlie_addr)
 
 
-def test_failing_challenge4(setup_participate):
-    '''
+def test_failing_challenge_4(setup_participate):
+    """
     ___Scenario :
         Same as above but with invalid tx
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -365,12 +365,12 @@ def test_failing_challenge4(setup_participate):
 
 
 def test_successful_exit1(setup_participate):
-    '''
+    """
     ___Scenario :
         Same as above but no one challenges and maturity period is achived and coin can be finalized
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -426,15 +426,15 @@ def test_successful_exit1(setup_participate):
 
 
 def test_multiple_challenges(setup_participate):
-    '''
+    """
     ___Scenario : Multiple challenges | Later Spend(invalid), In Between Spend(valid)
                   bob sends coin to oscar
                   bob sends coin to charlie
                   charlie sends coin to peter
-                  peter challenges but fails due to providind later spend
+                  peter challenges but fails due to providing later spend
                   oscar challenges with valid tx proving the double spend to charlie
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -523,16 +523,16 @@ def test_multiple_challenges(setup_participate):
     # oscar challenges successfully
 
 
-def test_failing_challenge5(setup_participate):
-    '''
+def test_failing_challenge_5(setup_participate):
+    """
     ___Scenario : Cannot challenge exit with an earlier spend
                   bob sends coin to oscar
                   bob sends coin to charlie
                   charlie sends coin to peter
                   alice challenges but fails due to providing earlier spend
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -612,15 +612,15 @@ def test_failing_challenge5(setup_participate):
 
 
 def test_double_spend(setup_participate):
-    '''
+    """
     ___Scenario : Double spend after many tx
                   alice legitimately sends coin to bob
                   bob legitimately sends coin to oscar
                   oscar legitimately sends coin to charlie
                   charlie legitimately sends coin to peter
                   bob double spends coin by sending it to dylan
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address

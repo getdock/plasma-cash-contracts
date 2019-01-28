@@ -1,11 +1,12 @@
 from fixtures.const import ETHER_NAME, DEFAULT_PASSWORD, w3
-from helpers import instances, estimate_gas
+from helpers import estimate_gas
 
 
 # testing setMaturityAndBond function on PlasmaContract
-def test_maturity_and_bond(accounts):
+def test_maturity_and_bond(setup):
+    accounts, deployed_contracts = setup
     # getting plasma_instance set by deployer
-    plasma_instance = instances.plasma_instance
+    plasma_instance = deployed_contracts.plasma_instance
 
     # getting gas cost on setMaturityAndBond function
     gas = estimate_gas.setMaturityAndBond()
@@ -30,11 +31,12 @@ def test_maturity_and_bond(accounts):
 
 # testing unsuccessful set of maturityAndbond since function can be called only
 # by the owner and not by pariticipants.
-def test_unsuccessful_maturity_and_bond(accounts):
+def test_unsuccessful_maturity_and_bond(setup):
+    accounts, deployed_contracts = setup
     alice_addr = accounts[1].address
 
     # getting plasma_instance set by deployer
-    plasma_instance = instances.plasma_instance
+    plasma_instance = deployed_contracts.plasma_instance
 
     # getting gas cost on setMaturityAndBond function
     gas = estimate_gas.setMaturityAndBond()

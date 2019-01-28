@@ -86,7 +86,7 @@ class SparseMerkleTree(object):
         return proof_bytes + proof
 
     def verify(self, uid, proof):
-        ''' Checks if the proof for the leaf at `uid` is valid'''
+        """ Checks if the proof for the leaf at `uid` is valid"""
         # assert (len(proof) -8 % 32) == 0
         assert len(proof) <= 2056
 

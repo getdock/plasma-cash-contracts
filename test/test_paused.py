@@ -1,13 +1,14 @@
 import pytest
 
 from fixtures.const import ETHER_NAME, COIN_DENOMINATION, w3
-from helpers import participate, instances, erc20
+from helpers import participate, erc20
 
 
-def test_paused(accounts):
+def test_paused(setup):
+    accounts, deployed_contracts = setup
     alice_addr = accounts[1].address
 
-    plasma_instance = instances.plasma_instance
+    plasma_instance = deployed_contracts.plasma_instance
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     pause_tx = plasma_instance.functions.pause(True).transact(

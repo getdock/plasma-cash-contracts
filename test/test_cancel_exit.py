@@ -6,14 +6,14 @@ from helpers import fetcher, generate, exit
 
 def test_owned_coin(setup_participate):
     """Assert the coins returned by participate are created as they should."""
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     alice_coins = fetcher.owned_coins(alice_addr)
     assert coins == alice_coins
 
 
-def test_successful_cancelExit(setup_participate):
-    accounts, coins = setup_participate
+def test_successful_cancelexit(setup_participate):
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -49,7 +49,7 @@ def test_successful_cancelExit(setup_participate):
 
 # Bob trys to cancel an Exit he has not started, he fails to do it.
 def test_unsuccessful_cancelExit(setup_participate):
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address

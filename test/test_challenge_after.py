@@ -6,7 +6,7 @@ from helpers import fetcher, generate, exit, challenges
 
 def test_owned_coin(setup_participate):
     """Assert the coins returned by participate are created as they should."""
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     alice_coins = fetcher.owned_coins(alice_addr)
     assert coins == alice_coins
@@ -20,7 +20,7 @@ def test_challenge_after1(setup_participate):
         bob tries to challenge an Exit that doesnt exist...', 'blue')
 
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
 
@@ -59,7 +59,7 @@ def test_challenge_after2(setup_participate):
         oscar tries to exit but charlie challenges him and wins.
     """
 
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -131,7 +131,7 @@ def test_challenge_after3(setup_participate):
         Same as above but with invalid signature provided...
         Thus oscar can exit a double spent coin.
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -207,7 +207,7 @@ def test_challenge_after4(setup_participate):
         Same as above but with invalid merkle proof provided...
         Thus oscar can exit a double sped coin.
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -286,7 +286,7 @@ def test_challenge_after5(setup_participate):
         Same as above but with invalid tx provided...
         Thus oscar can exit a double spend coin.
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -360,7 +360,7 @@ def test_challenge_after6(setup_participate):
     ___Scenario:
         No one challenges oscar so he can exit a double spend coin.
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -424,7 +424,7 @@ def test_challenge_after7(setup_participate):
         Cannot challenge with earlier tx...
 
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -489,7 +489,7 @@ def test_challenge_after8(setup_participate):
         Can challenge with an direct spend
 
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -545,7 +545,7 @@ def test_challenge_after9(setup_participate):
     Challenge after #9
     ___Scenario : Cannot challenge with non-direct spend
     """
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address

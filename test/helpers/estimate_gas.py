@@ -1,16 +1,15 @@
 from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers import instances
 
-
-'''
+"""
     EstimateGas script deals with estimating gas cost of all functions that
     we are calling in contracts.
-'''
+"""
+
 
 # function to get gas cost of ERC20 deployement
 # ercdata: contract json
 def ERC20(ercdata):
-
     # building contract object.
     ERC20 = w3.eth.contract(
         # contract abi
@@ -26,10 +25,10 @@ def ERC20(ercdata):
     # returning gas cost
     return gas
 
+
 # function to get gas cost of DoChecks deployement
 # doChecksData: contract json
 def DoChecks(doChecksData):
-
     # building contract object.
     DoChecks = w3.eth.contract(
         # contract abi
@@ -45,10 +44,10 @@ def DoChecks(doChecksData):
     # returning gas cost
     return gas
 
+
 # function to get gas cost of PlasmaTokenERC721 deployement
 # erc721Data: contract json
 def PlasmaTokenERC721(erc721Data):
-
     PlasmaTokenERC721 = w3.eth.contract(
         abi=erc721Data['abi'],
         bytecode=erc721Data['bytecode']
@@ -60,10 +59,10 @@ def PlasmaTokenERC721(erc721Data):
 
     return gas
 
+
 # function to get gas cost of PlasmaContract deployement
 # plasmadata: contract json
 def PlasmaContract(plasmadata):
-
     Plasma = w3.eth.contract(
         abi=plasmadata['abi'],
         bytecode=plasmadata['bytecode']
@@ -74,16 +73,17 @@ def PlasmaContract(plasmadata):
 
     return gas
 
+
 # function to get gas cost of loadAddress function
 # plasmaAddress: parameter of loadPlasmaAddress() on erc721 token
 def loadAddress(plasmaAddress):
-
     erc721_instance = instances.erc721_instance
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     gas = erc721_instance.functions.loadPlasmaAddress(
         plasmaAddress).estimateGas({'from': w3.eth.accounts[0]})
     return gas
+
 
 # function to get gas cost of challenge_before function
 # token_id : the token_id which user wants to challenge.
@@ -100,7 +100,6 @@ def challenge_before(
         signature,
         block_number,
         address):
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -113,6 +112,7 @@ def challenge_before(
     ).estimateGas({'from': address, 'value': w3.toWei(0.1, 'ether')})
 
     return gas
+
 
 # function to get gas cost of respondchallenge_before contract function
 # token_id : the token_id which user wants to challenge.
@@ -130,7 +130,6 @@ def respondchallenge_before(
         proof,
         signature,
         address):
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -144,6 +143,7 @@ def respondchallenge_before(
     ).estimateGas({'from': address})
 
     return gas
+
 
 # function to get gas cost of challengeBetween contract function.
 # token_id : the token_id which user wants to challenge.
@@ -159,7 +159,6 @@ def challengeBetween(
         tx_inclusion_proof,
         signature,
         address):
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -172,6 +171,7 @@ def challengeBetween(
     ).estimateGas({'from': address})
 
     return gas
+
 
 # function to get gas cost of challengeAfter contract function
 # token_id : the token_id which user wants to challenge.
@@ -187,7 +187,6 @@ def challengeAfter(
         proof,
         signature,
         address):
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -201,11 +200,11 @@ def challengeAfter(
 
     return gas
 
+
 # function to get gas cost of participate contract function
 # address: function caller
 # amount: amount to participate
 def participate(address, amount):
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -214,10 +213,10 @@ def participate(address, amount):
 
     return gas
 
+
 # function to get gas cost of withdrawBonds contract function
 # address: function caller
 def withdrawBonds(address):
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -226,11 +225,11 @@ def withdrawBonds(address):
 
     return gas
 
+
 # function to get gas cost of erc20transfer contract function
 # to: the recepient
 # amount: the amount to be send
 def erc20Transfer(to, amount):
-
     erc20_instance = instances.erc20_instance
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
@@ -239,12 +238,12 @@ def erc20Transfer(to, amount):
 
     return gas
 
+
 # function to get gas cost of erc20Approve contract function
 # approveAddress : the address to approve
 # address : the approver
 # amount: amount to approve
 def erc20Approve(approveAddress, address, amount):
-
     erc20_instance = instances.erc20_instance
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -253,9 +252,9 @@ def erc20Approve(approveAddress, address, amount):
 
     return gas
 
+
 # function to get gas cost of setMaturityAndBond contract function
 def setMaturityAndBond():
-
     plasma_instance = instances.plasma_instance
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
@@ -264,16 +263,18 @@ def setMaturityAndBond():
 
     return gas
 
+
 # function to get gas cost of erc20transfer contract function
 # erc20_DOCK_addr = erc20 dock token contract address
 # erc721_DPT_addr = erc721 token contract address
 # do_checks_addr = DoChecks contract address
-def loadAddressesOnPlasma(erc20_DOCK_addr, erc721_DPT_addr, do_checks_addr):
-
-    plasma_instance = instances.plasma_instance
-
+def load_addresses_on_plasma(deployed_contracts):
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
-    gas = plasma_instance.functions.setAddresses(
-        erc20_DOCK_addr, erc721_DPT_addr, do_checks_addr).estimateGas({'from': w3.eth.accounts[0]})
-
+    gas = deployed_contracts.plasma_instance.functions.setAddresses(
+        deployed_contracts.erc20_instance.address,
+        deployed_contracts.erc721_instance.address,
+        deployed_contracts.checks_instance.address
+    ).estimateGas(
+        {'from': w3.eth.accounts[0]}
+    )
     return gas

@@ -1,25 +1,24 @@
 import pytest
 
 from fixtures.const import COIN_DENOMINATION, DEFAULT_PASSWORD, w3
-from helpers import instances, fetcher, generate, exit, challenges
+from helpers import fetcher, generate, exit, challenges
 
 
 def test_owned_coin(setup_participate):
     """Assert the coins returned by participate are created as they should."""
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     alice_coins = fetcher.owned_coins(alice_addr)
     assert coins == alice_coins
 
 
 def test_exiting_1(setup_participate):
-    '''
-
+    """
     Alice has participated in plasma and she has not done any transaction off-chain and
     now she wants to exit due to snifing a malicious behavior from validator/operator or just
     wants to exit for whatever reason.
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
 
     # Exiting with a deposit transaction.
@@ -42,7 +41,7 @@ def test_exiting_1(setup_participate):
 
 
 def test_exiting_2(setup_participate):
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     # Exiting with prevTx as deposit
@@ -76,7 +75,7 @@ def test_exiting_2(setup_participate):
 
 
 def test_exiting_3(setup_participate):
-    accounts, coins = setup_participate
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -120,13 +119,13 @@ def test_exiting_3(setup_participate):
 
 
 def test_challenge_1(setup_participate):
-    '''
+    """
     ___Scenario :
         alice legitimately has deposited and owns a coin...
         bob in colaboration with operator pretends she received the coin from alice and includes it in a block...
         bob transfers coin to oscar and oscar tries to exit...
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -181,12 +180,12 @@ def test_challenge_1(setup_participate):
     )
 
     challenges.finishChallengeExit(coins[3], alice_addr)
-    coinObj = instances.plasma_instance.functions.getPlasmaCoin(coins[3]).call()
+    coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[3]).call()
     assert coinObj[4] == 0
 
 
 def test_challenge_2(setup_participate):
-    '''
+    """
     ___Scenario :
 
         alice legitimately has deposited and owns a coin...
@@ -194,8 +193,8 @@ def test_challenge_2(setup_participate):
         oscar in colaboration with operator pretends she received the coin from bob and includes it in a block...
         oscar sends coin to charlie...
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -261,20 +260,20 @@ def test_challenge_2(setup_participate):
     # There is no response from charlie...
     # bob finishes exit to win the bond...
     challenges.finishChallengeExit(coins[4], bob_addr)
-    coinObj = instances.plasma_instance.functions.getPlasmaCoin(coins[4]).call()
+    coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[4]).call()
     assert coinObj[4] == 0
 
 
 def test_challenge_3(setup_participate):
-    '''
+    """
     ___Scenario :
 
         alice legitimately sends a coin he owns to bob...
         bob legitimately sends the received coin to oscar...
         charlie in colaboration with operator pretends he received the coin from oscar and includes it in a block...
         charlie sends coin to peter...
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -345,17 +344,17 @@ def test_challenge_3(setup_participate):
         oscar_addr,
         bob_oscar["tx_hash"]
     )
-    '''
+    """
     There is no response from peter...
     oscar finishes exit to win the bond...
-    '''
+    """
     challenges.finishChallengeExit(coins[5], oscar_addr)
-    coinObj = instances.plasma_instance.functions.getPlasmaCoin(coins[5]).call()
+    coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[5]).call()
     assert coinObj[4] == 0
 
 
 def test_challenge_4(setup_participate):
-    '''
+    """
     ___Scenario :
 
         alice legitimately sends a coin he owns to bob...
@@ -366,8 +365,8 @@ def test_challenge_4(setup_participate):
         oscar challenges peter tx...
         peter tries to respond oscars valid challenge...
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -453,12 +452,12 @@ def test_challenge_4(setup_participate):
 
     # oscar finishes exit to win the bond...
     challenges.finishChallengeExit(coins[6], oscar_addr)
-    coinObj = instances.plasma_instance.functions.getPlasmaCoin(coins[6]).call()
+    coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[6]).call()
     assert coinObj[4] == 0
 
 
 def test_challenge_5(setup_participate):
-    '''
+    """
     ___Scenario :
 
         A group of participants gathered together with operator try to exit alice legitimately owned coin...
@@ -470,8 +469,8 @@ def test_challenge_5(setup_participate):
         One of the group members challenges peter...
         alice also challenges with her legit deposit transaction...
 
-    '''
-    accounts, coins = setup_participate
+    """
+    accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
@@ -572,5 +571,5 @@ def test_challenge_5(setup_participate):
 
     # alice finishes exit since she owns the coin
     challenges.finishChallengeExit(coins[7], alice_addr)
-    coinObj = instances.plasma_instance.functions.getPlasmaCoin(coins[7]).call()
+    coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[7]).call()
     assert coinObj[4] == 0

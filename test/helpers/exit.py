@@ -77,10 +77,10 @@ def finish_exit(coinId, address):
     # time required to wait for MATURITY_PERIOD(on mainnet = 1 week / 5 days)
     time.sleep(3)
 
-    '''
+    """
     Note :
         estimateGas is not working as it should in the case of calling finalizeExit() function.
-    '''
+    """
 
     # unlocking account so we can call finalizeExit function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)

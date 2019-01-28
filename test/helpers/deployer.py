@@ -7,11 +7,11 @@ from fixtures.const import w3, PLASMA_CONTRACT_PATH, ERC20_CONTRACT_PATH, DOCK_P
     CHECKS_CONTRACT_PATH
 from helpers import instances, estimate_gas
 
-'''
+"""
     deployer.py
         Used to deploy all contracts needed to make this whole poc work.
         Also deployer handles linking all contracts together.
-'''
+"""
 
 
 def deploy_contract(compiled_contract_path: str, account: str) -> Tuple[Dict, AttributeDict]:
@@ -49,12 +49,12 @@ def deploy_contract(compiled_contract_path: str, account: str) -> Tuple[Dict, At
     return contract_data, tx_receipt_contract
 
 
-def deploy_all_contracts(account: str) -> Dict:
+def deploy_all_contracts(account: str) -> AttributeDict:
     """
     Deploy all contracts needed in this POC.
 
     :param account: account to use
-    :return:
+    :return: AttributeDict with web3.utils.datatypes.Contract instances of the deployed contracts
     """
     erc_data, tx_receipt_ERC20 = deploy_contract(ERC20_CONTRACT_PATH, account)
     do_checks_data, tx_receipt_checks = deploy_contract(CHECKS_CONTRACT_PATH, account)
@@ -79,6 +79,15 @@ def deploy_all_contracts(account: str) -> Dict:
     checks_instance = w3.eth.contract(
         address=tx_receipt_checks.contractAddress,
         abi=do_checks_data['abi'],
+    )
+
+    deployed_contracts = AttributeDict(
+        {
+            "erc20_instance": erc20_instance,
+            "plasma_instance": plasma_instance,
+            "erc721_instance": erc721_instance,
+            "checks_instance": checks_instance
+        }
     )
 
     # setting contract instances as global variables so we can call them in other
@@ -121,10 +130,7 @@ def deploy_all_contracts(account: str) -> Dict:
     assert w3.eth.waitForTransactionReceipt(setBondValue).status == 1
 
     # getting gas cost of loadAddressesOnPlasma function using estimateGas script.
-    gas = estimate_gas.loadAddressesOnPlasma(
-        tx_receipt_ERC20.contractAddress,
-        tx_receipt_erc721.contractAddress,
-        tx_receipt_checks.contractAddress)
+    gas = estimate_gas.load_addresses_on_plasma(deployed_contracts)
     w3.personal.unlockAccount(account, '')
 
     # setting addresses on PlasmaContract which will be used to :
@@ -151,9 +157,4 @@ def deploy_all_contracts(account: str) -> Dict:
     # checking if plasma address is set as expected in erc721.
     assert tx_receipt_plasma.contractAddress == erc721_instance.functions.plasmaAddress().call()
 
-    return {
-        "erc20": erc20_instance,
-        "plasma": plasma_instance,
-        "erc721": erc721_instance,
-        "checks": checks_instance
-    }
+    return deployed_contracts

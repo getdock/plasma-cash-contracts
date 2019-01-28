@@ -1,10 +1,10 @@
 import pytest
 
 from fixtures.const import COIN_DENOMINATION, ETHER_NAME, w3
-from helpers import participate, instances, erc20
+from helpers import participate, erc20
 
 
-def test_successful_participate(accounts):
+def test_successful_participate(setup):
     """
     user owns 5000 dock tokens in decimals
     user approves plasma contract 5000 dock tokens
@@ -13,9 +13,10 @@ def test_successful_participate(accounts):
     that is the amount owned and approved by user.
 
     """
+    accounts, deployed_contracts = setup
     peter_addr = accounts[1].address
 
-    plasma_address = instances.plasma_instance.address
+    plasma_address = deployed_contracts.plasma_instance.address
 
     erc20.transfer(peter_addr, COIN_DENOMINATION)
     erc20.approve(plasma_address, peter_addr, COIN_DENOMINATION)
@@ -25,7 +26,7 @@ def test_successful_participate(accounts):
     assert len(coins) == 1
 
 
-def test_unsuccessful_participate(accounts):
+def test_unsuccessful_participate(setup):
     """
     user owns 5000 dock tokens in decimals
     user approves plasma contract 5000 dock tokens
@@ -34,9 +35,10 @@ def test_unsuccessful_participate(accounts):
     the amount owned and approved by user is 5000.
 
     """
+    accounts, deployed_contracts = setup
     alice_addr = accounts[2].address
 
-    plasma_address = instances.plasma_instance.address
+    plasma_address = deployed_contracts.plasma_instance.address
 
     erc20.transfer(alice_addr, COIN_DENOMINATION)
     erc20.approve(plasma_address, alice_addr, COIN_DENOMINATION)
@@ -47,7 +49,7 @@ def test_unsuccessful_participate(accounts):
         participate.participate(alice_addr, 1, new_denomination)
 
 
-def test_outOfBalance_participate(accounts):
+def test_outOfBalance_participate(setup):
     """
 
     user owns 10 dock tokens in decimals
@@ -56,10 +58,11 @@ def test_outOfBalance_participate(accounts):
     he cant do so since the amount approved is 5 dock tokens in decimals
 
     """
+    accounts, deployed_contracts = setup
     peter_addr = accounts[1].address
     oscar_addr = accounts[3].address
 
-    plasma_address = instances.plasma_instance.address
+    plasma_address = deployed_contracts.plasma_instance.address
 
     deno = w3.toWei(5, ETHER_NAME)
 

@@ -3,14 +3,15 @@ from typing import Tuple, List
 import pytest
 
 from fixtures.const import ETHER_NAME, COIN_DENOMINATION, w3
-from helpers import parity, deployer, erc20, participate, instances
+from helpers import parity, deployer, erc20, participate
 
 
 @pytest.fixture(scope='module')
-def accounts() -> List:
+def setup() -> List:
+    """Setup accounts on a parity dev node."""
     accounts = setup_accounts()
-    instances = deployer.deploy_all_contracts(w3.eth.defaultAccount)
-    yield accounts
+    deployed_contracts = deployer.deploy_all_contracts(w3.eth.defaultAccount)
+    yield accounts, deployed_contracts
 
     for i in accounts:
         parity.delete_account(i.address)
@@ -20,9 +21,9 @@ def accounts() -> List:
 def setup_participate() -> Tuple[List, List]:
     """Setup accounts on a parity dev node and participate some coins with the first account."""
     accounts = setup_accounts()
-    instances = deployer.deploy_all_contracts(w3.eth.defaultAccount)
-    coins = participate_account(accounts[1].address)
-    yield accounts, coins
+    deployed_contracts = deployer.deploy_all_contracts(w3.eth.defaultAccount)
+    coins = participate_account(accounts[1].address, deployed_contracts.plasma_instance)
+    yield accounts, deployed_contracts, coins
 
     for i in accounts:
         parity.delete_account(i.address)
@@ -39,17 +40,15 @@ def setup_accounts(count: int = 8) -> List:
     return accounts
 
 
-def participate_account(account_address) -> List:
+def participate_account(account_address, plasma_contract_instance) -> List:
     """
     Make the given account participate.
 
     :param account_address: address to the account to participate
     :return: list of coins
     """
-    # getting the plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
     # getting deployed plasma address
-    plasma_address = plasma_instance.address
+    plasma_address = plasma_contract_instance.address
     # transfering erc20 tokens to account_address so she can participate into plasma contract.
     erc20.transfer(account_address, w3.toWei(5000000, ETHER_NAME))
     # account_address approving the tokens to plasma_address so when participate function is called the
