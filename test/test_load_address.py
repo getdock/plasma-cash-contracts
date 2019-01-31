@@ -5,7 +5,10 @@ from helpers import estimate_gas
 # only owner can successfully load plasma address
 def test_successful_load_plasma_address(setup_participate):
     accounts, deployed_contracts, coins = setup_participate
-    gas = estimate_gas.loadAddress(deployed_contracts.plasma_instance.address)
+    gas = estimate_gas.loadAddress(
+        deployed_contracts.erc721_instance,
+        deployed_contracts.plasma_instance.address
+    )
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     load_address_on_ERC721 = deployed_contracts.erc721_instance.functions.loadPlasmaAddress(
@@ -22,7 +25,10 @@ def test_unsuccessful_load_plasma_address(setup_participate):
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
 
-    gas = estimate_gas.loadAddress(deployed_contracts.plasma_instance.address)
+    gas = estimate_gas.loadAddress(
+        deployed_contracts.erc721_instance,
+        deployed_contracts.plasma_instance.address
+    )
 
     w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
     load_address_on_ERC721 = deployed_contracts.erc721_instance.functions.loadPlasmaAddress(

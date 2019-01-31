@@ -17,6 +17,7 @@ def test_finalize_exits(setup_participate):
     # starting exit from alice with all her deposit transactions
     for i in range(10):
         exit.start_exit(
+            deployed_contracts.plasma_instance,
             coins[i],
             '0x',  # prevtx_bytes
             alice_exit_txs[i]["tx"],  # exitingtx_bytes
@@ -26,13 +27,13 @@ def test_finalize_exits(setup_participate):
             [0, i + 1],  # blocks
             alice_addr  # exiter
         )
-        exit.finish_exits(coins, alice_addr)
+        exit.finish_exits(deployed_contracts.plasma_instance, coins, alice_addr)
 
     c = []
 
     # getting all exited coins
     for i in coins:
-        c.append(fetcher.coin_by_id(i))
+        c.append(fetcher.coin_by_id(deployed_contracts.plasma_instance, i))
 
     # checking if state of coin is set to EXITED
     for i in c:

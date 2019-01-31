@@ -9,7 +9,7 @@ def test_maturity_and_bond(setup):
     plasma_instance = deployed_contracts.plasma_instance
 
     # getting gas cost on setMaturityAndBond function
-    gas = estimate_gas.setMaturityAndBond()
+    gas = estimate_gas.setMaturityAndBond(plasma_instance)
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     bond = plasma_instance.functions.setMaturityAndBond(
@@ -39,7 +39,7 @@ def test_unsuccessful_maturity_and_bond(setup):
     plasma_instance = deployed_contracts.plasma_instance
 
     # getting gas cost on setMaturityAndBond function
-    gas = estimate_gas.setMaturityAndBond()
+    gas = estimate_gas.setMaturityAndBond(plasma_instance)
 
     w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
     bond = plasma_instance.functions.setMaturityAndBond(

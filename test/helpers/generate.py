@@ -1,17 +1,18 @@
+import random
+
+import rlp
 from hexbytes import HexBytes
+
 from fixtures.const import w3, DEFAULT_PASSWORD
 from helpers.sparse_merkle_tree import SparseMerkleTree
-import random
-import rlp
-from helpers import instances
+
 
 # account password
 
 # function to generate dummy tx that will be included in sparse merkle tree.
 # The reason of generating dummy tx is just so we wont have a sparse merkle
 # tree containing only one transaction.
-def generateDummyTxs():
-
+def generate_dummy_txs():
     uid = random.getrandbits(64)
     prevBlock = 5
     deno = 20
@@ -27,6 +28,7 @@ def generateDummyTxs():
 
     return tx
 
+
 # function used to generate tx that will be used off-chain to initiate transactions
 # which also be used to exit or challenge a coin.
 # token_id: token_id of the token we want to generate tx for.
@@ -35,7 +37,6 @@ def generateDummyTxs():
 # to: address where token is being send
 # address: the initiater of transaction
 def tx(token_id, prevBlock, denomination, to, address):
-
     # rlp encoded transaction
     tx = rlp.encode([token_id, prevBlock, denomination, bytes.fromhex(to[2:])])
 
@@ -81,28 +82,28 @@ def tx(token_id, prevBlock, denomination, to, address):
         # returning tx
         return tx
 
+
 # def block
 # function that is used to generate blocks which will be included in PlasmaContract on-chain
 # token_id: the token id which will be the key on smt.
 # tx_hash: transaction hash of the transaction which will be the value of the token_id on smt.
 # block_number: the block number which will be submited to PlasmaContract.
-def block(token_id, tx_hash, block_number):
+def block(plasma_instance, token_id, tx_hash, block_number):
+    """
 
-    # getting PlasmaContract instance
-    plasma_instance = instances.plasma_instance
+    :param plasma_instance:
+    :param token_id:
+    :param tx_hash:
+    :param block_number:
+    :return:
+    """
+    dummy_txs = []
+    hashes = {token_id: tx_hash}
 
-    # dummy transactions(leaf) list.
-    dummyTxs = []
-
-    # hashes dictionary where key is token id and value is transaction hash
-    hashes = {
-        token_id: tx_hash
-    }
-
-    # filling dummyTxs list with dummy trasnactions
+    # filling dummy_txs list with dummy trasnactions
     for i in range(0, 20):
-        dummyTxs.append(generateDummyTxs())
-    for i in dummyTxs:
+        dummy_txs.append(generate_dummy_txs())
+    for i in dummy_txs:
         hashes.update({i[0]: i[1]})
 
     # Creating smt object with the provided hashes as leaves

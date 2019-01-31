@@ -5,7 +5,7 @@ from web3.datastructures import AttributeDict
 
 from fixtures.const import w3, PLASMA_CONTRACT_PATH, ERC20_CONTRACT_PATH, DOCK_PLASMA_CONTRACT_PATH, \
     CHECKS_CONTRACT_PATH
-from helpers import instances, estimate_gas
+from helpers import estimate_gas
 
 """
     deployer.py
@@ -90,17 +90,8 @@ def deploy_all_contracts(account: str) -> AttributeDict:
         }
     )
 
-    # setting contract instances as global variables so we can call them in other
-    # scripts without needing to create new ones.
-    instances.setInstances(
-        erc20_instance,
-        plasma_instance,
-        erc721_instance,
-        checks_instance
-    )
-
     # getting gas cost of loadAddress function using estimateGas script.
-    gas = estimate_gas.loadAddress(tx_receipt_plasma.contractAddress)
+    gas = estimate_gas.loadAddress(erc721_instance, tx_receipt_plasma.contractAddress)
 
     # unlocking account so we can call contract function.
     w3.personal.unlockAccount(account, '')
@@ -114,7 +105,7 @@ def deploy_all_contracts(account: str) -> AttributeDict:
     assert w3.eth.waitForTransactionReceipt(loadAddressOnERC721).status == 1
 
     # getting gas cost of setMaturityAndBond function using estimateGas script.
-    gas = estimate_gas.setMaturityAndBond()
+    gas = estimate_gas.setMaturityAndBond(plasma_instance)
 
     # unlocking account so we can call contract function.
     w3.personal.unlockAccount(account, '')

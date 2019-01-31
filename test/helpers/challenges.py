@@ -1,7 +1,9 @@
-import rlp
 import time
-from helpers import instances, estimate_gas
+
+import rlp
+
 from fixtures.const import DEFAULT_PASSWORD, ETHER_NAME, w3
+from helpers import estimate_gas
 
 """
     challenges.py
@@ -9,10 +11,6 @@ from fixtures.const import DEFAULT_PASSWORD, ETHER_NAME, w3
         if the challenge process is happening successfully.
 """
 
-"""
-docker run -d -ti -v ~/.parity/plasma-mvp/parity/:/home/.local/share/io.parity.ethereum/ -p 8545:8545 --name dock-mvp parity/parity:stable --chain dev --jsonrpc-interface all --jsonrpc-apis all --jsonrpc-cors all  --jsonrpc-hosts all
-docker stop dock-mvp; docker rm dock-mvp; rm -r ~/.parity; mkdir ~/.parity; chmod -R 777 ~/.parity; docker run -d -ti -v ~/.parity/plasma-mvp/:/home/parity/.local/share/io.parity.ethereum/ -p 8545:8545 --name {} parity/parity:v2.2.5 --chain dev --jsonrpc-interface all --jsonrpc-apis all --jsonrpc-cors all --jsonrpc-hosts all
-"""
 
 # challenge_before calling PlasmaContract challenge_before function.
 # token_id : the token_id which user wants to challenge.
@@ -23,6 +21,7 @@ docker stop dock-mvp; docker rm dock-mvp; rm -r ~/.parity; mkdir ~/.parity; chmo
 # address: the challenger address
 # tx_hash: needed to get the challenge set on PlasmaContract.
 def challenge_before(
+        plasma_instance,
         token_id,
         tx_bytes,
         tx_inclusion_proof,
@@ -30,12 +29,9 @@ def challenge_before(
         block_number,
         address,
         tx_hash):
-
-    # getting the plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
-
     # getting gas cost of challenge_before using estimateGas script.
     gas = estimate_gas.challenge_before(
+        plasma_instance,
         token_id,
         tx_bytes,
         tx_inclusion_proof,
@@ -69,14 +65,11 @@ def challenge_before(
     # asserting challengeObj to check whether the challenge initiated successfully.
     assertChallenge(challengeObj, tx[3], address, tx_hash, block_number)
 
+
 # finishChallengeExit used to finalize an exited coin
 # token_id: token_id of the token that user wants to finalize
 # address: the initiater of finalizeExit function.
-def finishChallengeExit(token_id, address):
-
-    # getting the plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
-
+def finishChallengeExit(plasma_instance, token_id, address):
     # using time.sleep to stop thread for some time in order to let token be matured
     # testing : 3 seconds
     # real world : 1 week or less.
@@ -124,6 +117,7 @@ def finishChallengeExit(token_id, address):
     # balances[1](withdrawable) should equal 0 since user has withdrawn it.
     assert balances[1] == 0
 
+
 # respondchallenge_before calling PlasmaContract respondchallenge_before function.
 # token_id : the token_id which user wants to challenge.
 # challengetx_hash: tx_hash of the tx that has challenged the exit
@@ -133,6 +127,7 @@ def finishChallengeExit(token_id, address):
 # signature: signature of the respondingTransaction
 # address: the responder address.
 def respondchallenge_before(
+        plasma_instance,
         token_id,
         challengingtx_hash,
         respondingblock_number,
@@ -140,12 +135,9 @@ def respondchallenge_before(
         proof,
         signature,
         address):
-
-    # getting the plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
-
     # getting gas cost of respondchallenge_before using estimateGas script.
     gas = estimate_gas.respondchallenge_before(
+        plasma_instance,
         token_id,
         challengingtx_hash,
         respondingblock_number,
@@ -172,7 +164,6 @@ def respondchallenge_before(
     assert w3.eth.waitForTransactionReceipt(res).status == 1
 
 
-
 # challengeAfter calling PlasmaContract challengeAfter function.
 # token_id : the token_id which user wants to challenge.
 # challengingblock_number: challenge trasnaction block number
@@ -181,18 +172,16 @@ def respondchallenge_before(
 # signature: signature of challengingTransaction.
 # address: challenger address
 def challenge_after(
+        plasma_instance,
         token_id,
         challengingblock_number,
         challengingTransaction,
         proof,
         signature,
         address):
-
-    # getting the plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
-
     # getting gas cost of challengeAfter using estimateGas script.
     gas = estimate_gas.challengeAfter(
+        plasma_instance,
         token_id,
         challengingblock_number,
         challengingTransaction,
@@ -217,7 +206,7 @@ def challenge_after(
     assert w3.eth.waitForTransactionReceipt(ch).status == 1
 
     # asserting successfull challenge
-    assertSuccessfulChallenge(address)
+    assertSuccessfulChallenge(plasma_instance, address)
 
     # getting exit obj
     exitObj = plasma_instance.functions.getExit(token_id).call()
@@ -234,18 +223,16 @@ def challenge_after(
 # signature: challenge tx signature
 # address: challenger address
 def challengeBetween(
+        plasma_instance,
         token_id,
         block_number,
         tx_bytes,
         tx_inclusion_proof,
         signature,
         address):
-
-    # getting plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
-
     # getting gas cost of challengeBetween using estimateGas script.
     gas = estimate_gas.challengeBetween(
+        plasma_instance,
         token_id,
         block_number,
         tx_bytes,
@@ -270,13 +257,14 @@ def challengeBetween(
     assert w3.eth.waitForTransactionReceipt(ch).status == 1
 
     # asserting successfull challenge
-    assertSuccessfulChallenge(address)
+    assertSuccessfulChallenge(plasma_instance, address)
 
     # getting exit struct from PlasmaContract
     exitObj = plasma_instance.functions.getExit(token_id).call()
 
     # assert deleted exit since challenge was successfull.
     assertNonExistingExit(exitObj)
+
 
 # function to check whether challenge was set as expected
 def assertChallenge(
@@ -290,6 +278,7 @@ def assertChallenge(
     assert challenge[2] == tx_hash
     assert challenge[3] == challengingblock_number
 
+
 # function to check if exit is deleted when a challenge is successfull.
 def assertNonExistingExit(exitObj):
     assert exitObj[0] == '0x0000000000000000000000000000000000000000'
@@ -297,12 +286,9 @@ def assertNonExistingExit(exitObj):
     assert exitObj[2] == 0
     assert exitObj[3] == 0
 
+
 # function to check balance of challenger if challenge was successfull
-def assertSuccessfulChallenge(address):
-
-    # getting plasma_instance set by deployer.
-    plasma_instance = instances.plasma_instance
-
+def assertSuccessfulChallenge(plasma_instance, address):
     # getting the balance of challenger
     balances = plasma_instance.functions.balances(address).call()
 
@@ -312,7 +298,7 @@ def assertSuccessfulChallenge(address):
     assert balances[1] == w3.toWei(0.1, ETHER_NAME)
 
     # getting gas cost of function using estimateGas script.
-    gas = estimate_gas.withdrawBonds(address)
+    gas = estimate_gas.withdrawBonds(plasma_instance, address)
 
     # unlocking account so we can call contract function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -332,11 +318,10 @@ def assertSuccessfulChallenge(address):
     # withdrawable should be 0 since user has withdrawn it.
     assert balances[1] == 0
 
+
 # function to check whether coin was deleted properly
 def assertDeletedCoin(coin):
     assert coin[0] == '0x0000000000000000000000000000000000000000'
     assert coin[1] == 0
     assert coin[2] == 0
     assert coin[4] == 0
-
-#

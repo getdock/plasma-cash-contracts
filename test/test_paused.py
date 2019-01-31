@@ -16,13 +16,13 @@ def test_paused(setup):
     )
     w3.eth.waitForTransactionReceipt(pause_tx)
 
-    erc20.transfer(alice_addr, w3.toWei(5000000, ETHER_NAME))
-    erc20.approve(plasma_instance.address, alice_addr, w3.toWei(5000000, ETHER_NAME))
+    erc20.transfer(alice_addr, w3.toWei(5000000, ETHER_NAME), deployed_contracts.erc20_instance)
+    erc20.approve(plasma_instance.address, alice_addr, w3.toWei(5000000, ETHER_NAME), deployed_contracts.erc20_instance)
 
     # it should throw
     # Plasma is paused so no one can participate
     with pytest.raises(Exception):
-        participate.participate(alice_addr, 2, COIN_DENOMINATION)
+        participate.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     pause_tx = plasma_instance.functions.pause(False).transact(
@@ -31,4 +31,4 @@ def test_paused(setup):
     w3.eth.waitForTransactionReceipt(pause_tx)
 
     # Plasma now is not paused so every one can participate
-    participate.participate(alice_addr, 2, COIN_DENOMINATION)
+    participate.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)

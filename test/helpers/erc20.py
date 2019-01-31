@@ -1,17 +1,13 @@
 from fixtures.const import w3, DEFAULT_PASSWORD
-from helpers import instances, estimate_gas
+from helpers import estimate_gas
 
 
 # transfer function to handle erc20 transfers to users
 # address: the address where tokens are being transafered.
 # amount: the amount that we want to trasnfer
-def transfer(address, amount):
-
-    # getting erc20_instance set by deployer
-    erc20_instance = instances.erc20_instance
-
+def transfer(address, amount, erc20_instance):
     # estimating function gas cost
-    gas = estimate_gas.erc20Transfer(address, amount)
+    gas = estimate_gas.erc20Transfer(erc20_instance, address, amount)
 
     # unlocking account so we can call functions
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
@@ -30,17 +26,14 @@ def transfer(address, amount):
     # returning the bilance of address
     return balance
 
+
 # approve function to handle approves on erc20 contract
 # approveAddress : the address we want to approve
 # address : approver(owner of erc20 tokens)
 # amount: amount to approve
-def approve(approveAddress, address, amount):
-
-    # getting erc20_instance set by deployer
-    erc20_instance = instances.erc20_instance
-
+def approve(approveAddress, address, amount, erc20_instance):
     # estimating function gas cost
-    gas = estimate_gas.erc20Approve(approveAddress, address, amount)
+    gas = estimate_gas.erc20Approve(erc20_instance, approveAddress, address, amount)
 
     # unlocking account so we can call functions
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)

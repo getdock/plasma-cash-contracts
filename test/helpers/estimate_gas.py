@@ -1,5 +1,4 @@
 from fixtures.const import w3, DEFAULT_PASSWORD
-from helpers import instances
 
 """
     EstimateGas script deals with estimating gas cost of all functions that
@@ -76,9 +75,7 @@ def PlasmaContract(plasmadata):
 
 # function to get gas cost of loadAddress function
 # plasmaAddress: parameter of loadPlasmaAddress() on erc721 token
-def loadAddress(plasmaAddress):
-    erc721_instance = instances.erc721_instance
-
+def loadAddress(erc721_instance, plasmaAddress):
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     gas = erc721_instance.functions.loadPlasmaAddress(
         plasmaAddress).estimateGas({'from': w3.eth.accounts[0]})
@@ -94,14 +91,14 @@ def loadAddress(plasmaAddress):
 # address: the challenger address
 # tx_hash: needed to get the challenge set on PlasmaContract.
 def challenge_before(
+        plasma_instance,
         token_id,
         tx_bytes,
         tx_inclusion_proof,
         signature,
         block_number,
-        address):
-    plasma_instance = instances.plasma_instance
-
+        address
+):
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.challengeBefore(
         token_id,
@@ -123,6 +120,7 @@ def challenge_before(
 # signature: signature of the respondingTransaction
 # address: the responder address.
 def respondchallenge_before(
+        plasma_instance,
         token_id,
         challengingtx_hash,
         respondingblock_number,
@@ -130,8 +128,6 @@ def respondchallenge_before(
         proof,
         signature,
         address):
-    plasma_instance = instances.plasma_instance
-
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.respondChallengeBefore(
         token_id,
@@ -153,14 +149,13 @@ def respondchallenge_before(
 # signature: challenge tx signature
 # address: challenger address
 def challengeBetween(
+        plasma_instance,
         token_id,
         block_number,
         tx_bytes,
         tx_inclusion_proof,
         signature,
         address):
-    plasma_instance = instances.plasma_instance
-
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.challengeBetween(
         token_id,
@@ -181,14 +176,13 @@ def challengeBetween(
 # signature: signature of challengingTransaction.
 # address: challenger address
 def challengeAfter(
+        plasma_instance,
         token_id,
         challengingblock_number,
         challengingTransaction,
         proof,
         signature,
         address):
-    plasma_instance = instances.plasma_instance
-
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.challengeAfter(
         token_id,
@@ -204,9 +198,7 @@ def challengeAfter(
 # function to get gas cost of participate contract function
 # address: function caller
 # amount: amount to participate
-def participate(address, amount):
-    plasma_instance = instances.plasma_instance
-
+def participate(plasma_instance, address, amount):
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.participate(
         amount).estimateGas({'from': address})
@@ -216,9 +208,7 @@ def participate(address, amount):
 
 # function to get gas cost of withdrawBonds contract function
 # address: function caller
-def withdrawBonds(address):
-    plasma_instance = instances.plasma_instance
-
+def withdrawBonds(plasma_instance, address):
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = plasma_instance.functions.withdrawBonds().estimateGas({
         'from': address})
@@ -229,9 +219,7 @@ def withdrawBonds(address):
 # function to get gas cost of erc20transfer contract function
 # to: the recepient
 # amount: the amount to be send
-def erc20Transfer(to, amount):
-    erc20_instance = instances.erc20_instance
-
+def erc20Transfer(erc20_instance, to, amount):
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     gas = erc20_instance.functions.transfer(
         to, amount).estimateGas({'from': w3.eth.accounts[0]})
@@ -243,9 +231,7 @@ def erc20Transfer(to, amount):
 # approveAddress : the address to approve
 # address : the approver
 # amount: amount to approve
-def erc20Approve(approveAddress, address, amount):
-    erc20_instance = instances.erc20_instance
-
+def erc20Approve(erc20_instance, approveAddress, address, amount):
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
     gas = erc20_instance.functions.approve(
         approveAddress, amount).estimateGas({'from': address})
@@ -254,9 +240,7 @@ def erc20Approve(approveAddress, address, amount):
 
 
 # function to get gas cost of setMaturityAndBond contract function
-def setMaturityAndBond():
-    plasma_instance = instances.plasma_instance
-
+def setMaturityAndBond(plasma_instance):
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     gas = plasma_instance.functions.setMaturityAndBond(
         w3.toWei(0.1, 'ether'), 2, 1).estimateGas({'from': w3.eth.accounts[0]})
