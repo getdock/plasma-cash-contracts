@@ -1,5 +1,5 @@
 from fixtures.const import COIN_DENOMINATION
-from helpers import fetcher, generate, exit
+from helpers import generate, exit
 
 
 # testing finalize exits function to exit all coins that are owned by alice
@@ -29,12 +29,12 @@ def test_finalize_exits(setup_participate):
         )
         exit.finish_exits(deployed_contracts.plasma_instance, coins, alice_addr)
 
-    c = []
+    exited_coins = []
 
     # getting all exited coins
     for i in coins:
-        c.append(fetcher.coin_by_id(deployed_contracts.plasma_instance, i))
+        exited_coins.append(deployed_contracts.plasma_instance.functions.getPlasmaCoin(i).call())
 
     # checking if state of coin is set to EXITED
-    for i in c:
+    for i in exited_coins:
         assert i[4] == 2

@@ -1,14 +1,14 @@
 import pytest
 
 from fixtures.const import COIN_DENOMINATION
-from helpers import fetcher, generate, exit
+from helpers import generate, exit
 
 
 def test_owned_coin(setup_participate):
     """Assert the coins returned by participate are created as they should."""
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
-    alice_coins = fetcher.owned_coins(deployed_contracts.erc721_instance, alice_addr)
+    alice_coins = deployed_contracts.erc721_instance.functions.getOwnedTokens(alice_addr).call()
     assert coins == alice_coins
 
 

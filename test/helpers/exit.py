@@ -4,7 +4,7 @@ from fixtures.const import w3, DEFAULT_PASSWORD
 
 
 # startExit calling PlasmaContract startExit function.
-# coinId: ID of the coin which user wants to exit.
+# coin_id: ID of the coin which user wants to exit.
 # prevtx_bytes: the previous transaction bytes that happend right before exiting transaction.
 # exitingtx_bytes: the transaction bytes of the transaction that user is starting exit with.
 # prevtx_inclusion_proof: the previous transaction SparseMerkleTree proof.
@@ -14,7 +14,7 @@ from fixtures.const import w3, DEFAULT_PASSWORD
 # addr: address of the exiter.
 def start_exit(
         plasma_instance,
-        coinId,
+        coin_id,
         prevtx_bytes,
         exitingtx_bytes,
         prevtx_inclusion_proof,
@@ -26,7 +26,7 @@ def start_exit(
     w3.personal.unlockAccount(addr, DEFAULT_PASSWORD)
     # getting the gas cost of startExit function.
     gas = plasma_instance.functions.startExit(
-        coinId,
+        coin_id,
         prevtx_bytes,
         exitingtx_bytes,
         prevtx_inclusion_proof,
@@ -39,7 +39,7 @@ def start_exit(
     w3.personal.unlockAccount(addr, DEFAULT_PASSWORD)
     # calling startExit function on PlasmaContract.
     t = plasma_instance.functions.startExit(
-        coinId,
+        coin_id,
         prevtx_bytes,
         exitingtx_bytes,
         prevtx_inclusion_proof,
@@ -53,15 +53,15 @@ def start_exit(
     assert w3.eth.waitForTransactionReceipt(t).status == 1
 
     # getting exit struct from PlasmaContract.
-    exitObj = plasma_instance.functions.getExit(coinId).call()
+    exitObj = plasma_instance.functions.getExit(coin_id).call()
     # asserting the state of the coin, in this case 1 means coin is EXITING
     assert exitObj[3] == 1
 
 
 # finishExit calling PlasmaContract finalizeExit function.
-# coinId : ID of the coin that user wants to finish exit.
+# coinI_i : ID of the coin that user wants to finish exit.
 # address : address of the user that finishes exit.
-def finish_exit(deployed_contracts, coinId, address):
+def finish_exit(deployed_contracts, coin_id, address):
     # getting the erc20_instance set by deployer.
     erc20_instance = deployed_contracts.erc20_instance
     # getting the erc721_instance set by deployer.
@@ -80,21 +80,21 @@ def finish_exit(deployed_contracts, coinId, address):
 
     # calling finalizeExit function on PlasmaContract.
     final = deployed_contracts.plasma_instance.functions.finalizeExit(
-        coinId).transact({'from': address, 'gas': 500000})
+        coin_id).transact({'from': address, 'gas': 500000})
 
     # asserting the status of respond to check if transaction is completed
     # successfully.
     assert w3.eth.waitForTransactionReceipt(final).status == 1
 
     # calling ownerOfToken function on DockPlasmaToken.
-    newOwner = erc721_instance.functions.ownerOfToken(coinId).call()
+    newOwner = erc721_instance.functions.ownerOfToken(coin_id).call()
 
     # owner of the coin has to be the one who fulfills the requirements to execute finalizeExit.
     # asserting the owner of the coin, newOwner address is equal with address.
     assert newOwner == address
 
     # calling the exit function on PlasmaContract.
-    exitObj = deployed_contracts.plasma_instance.functions.getExit(coinId).call()
+    exitObj = deployed_contracts.plasma_instance.functions.getExit(coin_id).call()
 
     # asserting the none existing exit
     assertNonExistingExit(exitObj)
@@ -146,14 +146,14 @@ def finish_exit(deployed_contracts, coinId, address):
 
     # getting the gas cost of withdraw function.
     gas = deployed_contracts.plasma_instance.functions.withdraw(
-        coinId).estimateGas({'from': address})
+        coin_id).estimateGas({'from': address})
 
     # unlocking account so we can call withdraw function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling withdraw function on PlasmaContract.
     t = deployed_contracts.plasma_instance.functions.withdraw(
-        coinId).transact({'from': address, 'gas': gas})
+        coin_id).transact({'from': address, 'gas': gas})
     w3.eth.waitForTransactionReceipt(t)
 
     # calling  balanceOf ERC20DockToken contract.
@@ -181,29 +181,29 @@ def finish_exits(plasma_instance, tokens, address):
     assert w3.eth.waitForTransactionReceipt(t).status == 1
 
 
-def cancel_exit(plasma_instance, coinId, address):
+def cancel_exit(plasma_instance, coin_id, address):
     # unlocking account so we can find how much gas is used by cancelExit
     # function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # getting the gas cost of withdraw function.
     gas = plasma_instance.functions.cancelExit(
-        coinId).estimateGas({'from': address})
+        coin_id).estimateGas({'from': address})
 
     # unlocking account so we can call cancelExit function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling cancelExit function on PlasmaContract.
     cancelExit = plasma_instance.functions.cancelExit(
-        coinId).transact({'from': address, 'gas': gas})
+        coin_id).transact({'from': address, 'gas': gas})
 
     # asserting the status of respond to check if transaction is completed
     # successfully.
     assert w3.eth.waitForTransactionReceipt(cancelExit).status == 1
 
     # calling getExit function to check if an instance of Exit struct is deleted
-    # coinId : ID of the coin that is exiting.
-    exitObj = plasma_instance.functions.getExit(coinId).call()
+    # coinI_i : ID of the coin that is exiting.
+    exitObj = plasma_instance.functions.getExit(coin_id).call()
 
     # asserting deleted struct of an exit that is canceled.
     assert exitObj[0] == '0x0000000000000000000000000000000000000000'

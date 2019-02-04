@@ -1,5 +1,5 @@
 from fixtures.const import w3, DEFAULT_PASSWORD
-from helpers import fetcher, estimate_gas
+from helpers import estimate_gas
 
 
 # participate function is used to participate on Plasma.
@@ -19,7 +19,7 @@ def participate(deployed_contracts, address, nr_of_tokens, amount):
         w3.eth.waitForTransactionReceipt(p)
 
     # getting owned coins of the user.
-    coins = fetcher.owned_coins(deployed_contracts.erc721_instance, address)
+    coins = deployed_contracts.erc721_instance.functions.getOwnedTokens(address).call()
     # length of coins(array) has to be equal with number of Tokens.
     assert len(coins) == nr_of_tokens
 
