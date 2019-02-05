@@ -61,7 +61,7 @@ def test_failing_challenge_1(setup_participate):
 
     # oscar challenges
     with pytest.raises(Exception):
-        challenges.challengeBetween(
+        challenges.challenge_between(
             deployed_contracts.plasma_instance,
             coins[0],
             bob_oscar["block_number"],
@@ -134,7 +134,7 @@ def test_successful_challenge_1(setup_participate):
     )
 
     # oscar challenges
-    challenges.challengeBetween(
+    challenges.challenge_between(
         deployed_contracts.plasma_instance,
         coins[1],
         bob_oscar["block_number"],
@@ -209,7 +209,7 @@ def test_failing_challenge_2(setup_participate):
 
     # oscar provides invalid signature, he fails to stop charlie's exit
     with pytest.raises(Exception):
-        challenges.challengeBetween(
+        challenges.challenge_between(
             deployed_contracts.plasma_instance,
             coins[2],
             bob_oscar["block_number"],
@@ -284,7 +284,7 @@ def test_failing_challenge_3(setup_participate):
 
     # oscar provides invalid merkle proof, he fails to stop charlie's exit
     with pytest.raises(Exception):
-        challenges.challengeBetween(
+        challenges.challenge_between(
             deployed_contracts.plasma_instance,
             coins[3],
             bob_oscar["block_number"],
@@ -358,7 +358,7 @@ def test_failing_challenge_4(setup_participate):
 
     # oscar challenges
     with pytest.raises(Exception):
-        challenges.challengeBetween(
+        challenges.challenge_between(
             deployed_contracts.plasma_instance,
             coins[4],
             bob_oscar["block_number"],
@@ -512,7 +512,7 @@ def test_multiple_challenges(setup_participate):
 
     # peter challenges charlie
     with pytest.raises(Exception):
-        challenges.challengeBetween(
+        challenges.challenge_between(
             deployed_contracts.plasma_instance,
             coins[6],
             charlie_peter["block_number"],
@@ -524,7 +524,7 @@ def test_multiple_challenges(setup_participate):
         # Cannot challenge with later spend tx!
 
     # oscar challenges
-    challenges.challengeBetween(
+    challenges.challenge_between(
         deployed_contracts.plasma_instance,
         coins[6],
         bob_oscar["block_number"],
@@ -611,7 +611,7 @@ def test_failing_challenge_5(setup_participate):
 
     # alice challenges charlie
     with pytest.raises(Exception):
-        challenges.challengeBetween(
+        challenges.challenge_between(
             deployed_contracts.plasma_instance,
             coins[7],
             alice_bob["block_number"],
@@ -717,7 +717,7 @@ def test_double_spend(setup_participate):
     )
 
     # oscar challenges
-    challenges.challengeBetween(
+    challenges.challenge_between(
         deployed_contracts.plasma_instance,
         coins[8],
         bob_oscar["block_number"],

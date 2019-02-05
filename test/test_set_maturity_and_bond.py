@@ -1,4 +1,4 @@
-from fixtures.const import w3, DEFAULT_BOND, DEFAULT_FROM
+from fixtures.const import w3, DEFAULT_BOND, DEFAULT_FROM, DEFAULT_PASSWORD
 
 
 # testing setMaturityAndBond function on PlasmaContract
@@ -7,7 +7,7 @@ def test_maturity_and_bond(setup):
     # getting plasma_instance set by deployer
     plasma_instance = deployed_contracts.plasma_instance
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.setMaturityAndBond(DEFAULT_BOND, 2, 1).estimateGas(DEFAULT_FROM)
 
     bond = plasma_instance.functions.setMaturityAndBond(
@@ -36,9 +36,10 @@ def test_unsuccessful_maturity_and_bond(setup):
     # getting plasma_instance set by deployer
     plasma_instance = deployed_contracts.plasma_instance
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.setMaturityAndBond(DEFAULT_BOND, 2, 1).estimateGas(DEFAULT_FROM)
 
+    w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
     bond = plasma_instance.functions.setMaturityAndBond(
         DEFAULT_BOND,
         2,

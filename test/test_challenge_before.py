@@ -184,7 +184,7 @@ def test_challenge_1(setup_participate):
         w3.soliditySha3(['uint64'], [coins[3]])
     )
 
-    challenges.finishChallengeExit(deployed_contracts.plasma_instance, coins[3], alice_addr)
+    challenges.finish_challenge_exit(deployed_contracts.plasma_instance, coins[3], alice_addr)
     coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[3]).call()
     assert coinObj[4] == 0
 
@@ -266,7 +266,7 @@ def test_challenge_2(setup_participate):
 
     # There is no response from charlie...
     # bob finishes exit to win the bond...
-    challenges.finishChallengeExit(deployed_contracts.plasma_instance, coins[4], bob_addr)
+    challenges.finish_challenge_exit(deployed_contracts.plasma_instance, coins[4], bob_addr)
     coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[4]).call()
     assert coinObj[4] == 0
 
@@ -357,7 +357,7 @@ def test_challenge_3(setup_participate):
     There is no response from peter...
     oscar finishes exit to win the bond...
     """
-    challenges.finishChallengeExit(deployed_contracts.plasma_instance, coins[5], oscar_addr)
+    challenges.finish_challenge_exit(deployed_contracts.plasma_instance, coins[5], oscar_addr)
     coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[5]).call()
     assert coinObj[4] == 0
 
@@ -450,7 +450,7 @@ def test_challenge_4(setup_participate):
 
     # peter tries to respond the valid challenge...
     with pytest.raises(Exception):
-        challenges.respondchallenge_before(
+        challenges.respond_challenge_before(
             deployed_contracts.plasma_instance,
             coins[6],
             bob_oscar["tx_hash"],
@@ -463,7 +463,7 @@ def test_challenge_4(setup_participate):
         # peter respond fails...
 
     # oscar finishes exit to win the bond...
-    challenges.finishChallengeExit(deployed_contracts.plasma_instance, coins[6], oscar_addr)
+    challenges.finish_challenge_exit(deployed_contracts.plasma_instance, coins[6], oscar_addr)
     coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[6]).call()
     assert coinObj[4] == 0
 
@@ -574,7 +574,7 @@ def test_challenge_5(setup_participate):
 
     # charlie tries to respond challenges / can respond to first challenge but
     # not to alice since it is the valid one.
-    challenges.respondchallenge_before(
+    challenges.respond_challenge_before(
         deployed_contracts.plasma_instance,
         coins[7],
         bob_oscar["tx_hash"],
@@ -586,6 +586,6 @@ def test_challenge_5(setup_participate):
     )
 
     # alice finishes exit since she owns the coin
-    challenges.finishChallengeExit(deployed_contracts.plasma_instance, coins[7], alice_addr)
+    challenges.finish_challenge_exit(deployed_contracts.plasma_instance, coins[7], alice_addr)
     coinObj = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[7]).call()
     assert coinObj[4] == 0

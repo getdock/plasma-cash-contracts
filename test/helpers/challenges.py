@@ -28,7 +28,7 @@ def challenge_before(
         block_number,
         address,
         tx_hash):
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.challengeBefore(
         token_id,
         tx_bytes,
@@ -57,13 +57,13 @@ def challenge_before(
         token_id, tx_hash).call()
 
     # asserting challengeObj to check whether the challenge initiated successfully.
-    assertChallenge(challengeObj, tx[3], address, tx_hash, block_number)
+    assert_challenge(challengeObj, tx[3], address, tx_hash, block_number)
 
 
 # finishChallengeExit used to finalize an exited coin
 # token_id: token_id of the token that user wants to finalize
 # address: the initiater of finalizeExit function.
-def finishChallengeExit(plasma_instance, token_id, address):
+def finish_challenge_exit(plasma_instance, token_id, address):
     # using time.sleep to stop thread for some time in order to let token be matured
     # testing : 3 seconds
     # real world : 1 week or less.
@@ -95,7 +95,7 @@ def finishChallengeExit(plasma_instance, token_id, address):
     # getting exit struct from plasma_instance
     exitObj = plasma_instance.functions.getExit(token_id).call()
     # asserting the deleted exit since challenge was successfull.
-    assertNonExistingExit(exitObj)
+    assert_non_existing_exit(exitObj)
 
     # unlocking account so we can call function
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -120,7 +120,7 @@ def finishChallengeExit(plasma_instance, token_id, address):
 # proof: proof of the respondingTransaction
 # signature: signature of the respondingTransaction
 # address: the responder address.
-def respondchallenge_before(
+def respond_challenge_before(
         plasma_instance,
         token_id,
         challengingtx_hash,
@@ -129,7 +129,7 @@ def respondchallenge_before(
         proof,
         signature,
         address):
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.respondChallengeBefore(
         token_id,
         challengingtx_hash,
@@ -170,7 +170,7 @@ def challenge_after(
         proof,
         signature,
         address):
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.challengeAfter(
         token_id,
         challengingblock_number,
@@ -192,13 +192,13 @@ def challenge_after(
     assert w3.eth.waitForTransactionReceipt(ch).status == 1
 
     # asserting successfull challenge
-    assertSuccessfulChallenge(plasma_instance, address)
+    assert_successful_challenge(plasma_instance, address)
 
     # getting exit obj
     exitObj = plasma_instance.functions.getExit(token_id).call()
 
     # assert deleted exit since the challenge was successfull.
-    assertNonExistingExit(exitObj)
+    assert_non_existing_exit(exitObj)
 
 
 # challengeBetween calling PlasmaContract challengeBetween function.
@@ -208,7 +208,7 @@ def challenge_after(
 # tx_inclusion_proof: smt proof of challenge tx
 # signature: challenge tx signature
 # address: challenger address
-def challengeBetween(
+def challenge_between(
         plasma_instance,
         token_id,
         block_number,
@@ -216,7 +216,7 @@ def challengeBetween(
         tx_inclusion_proof,
         signature,
         address):
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.challengeBetween(
         token_id,
         block_number,
@@ -238,17 +238,17 @@ def challengeBetween(
     assert w3.eth.waitForTransactionReceipt(ch).status == 1
 
     # asserting successfull challenge
-    assertSuccessfulChallenge(plasma_instance, address)
+    assert_successful_challenge(plasma_instance, address)
 
     # getting exit struct from PlasmaContract
     exitObj = plasma_instance.functions.getExit(token_id).call()
 
     # assert deleted exit since challenge was successfull.
-    assertNonExistingExit(exitObj)
+    assert_non_existing_exit(exitObj)
 
 
 # function to check whether challenge was set as expected
-def assertChallenge(
+def assert_challenge(
         challenge,
         owner,
         challenger,
@@ -261,7 +261,7 @@ def assertChallenge(
 
 
 # function to check if exit is deleted when a challenge is successfull.
-def assertNonExistingExit(exitObj):
+def assert_non_existing_exit(exitObj):
     assert exitObj[0] == '0x0000000000000000000000000000000000000000'
     assert exitObj[1] == 0
     assert exitObj[2] == 0
@@ -269,7 +269,7 @@ def assertNonExistingExit(exitObj):
 
 
 # function to check balance of challenger if challenge was successfull
-def assertSuccessfulChallenge(plasma_instance, address):
+def assert_successful_challenge(plasma_instance, address):
     # getting the balance of challenger
     balances = plasma_instance.functions.balances(address).call()
 
@@ -278,7 +278,7 @@ def assertSuccessfulChallenge(plasma_instance, address):
     # balances[1]: withdrawable bond should be 0.1 since challenge was successfull
     assert balances[1] == DEFAULT_BOND
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.withdrawBonds().estimateGas({'from': address})
 
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
@@ -298,7 +298,7 @@ def assertSuccessfulChallenge(plasma_instance, address):
 
 
 # function to check whether coin was deleted properly
-def assertDeletedCoin(coin):
+def assert_deleted_coin(coin):
     assert coin[0] == '0x0000000000000000000000000000000000000000'
     assert coin[1] == 0
     assert coin[2] == 0

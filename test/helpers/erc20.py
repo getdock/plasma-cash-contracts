@@ -5,7 +5,7 @@ from fixtures.const import w3, DEFAULT_PASSWORD, DEFAULT_FROM
 # address: the address where tokens are being transafered.
 # amount: the amount that we want to trasnfer
 def transfer(address, amount, erc20_instance):
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = erc20_instance.functions.transfer(address, amount).estimateGas(DEFAULT_FROM)
 
     # calling transfer function on erc20 contract.

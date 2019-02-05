@@ -29,7 +29,7 @@ def deploy_contract(compiled_contract_path: str, account: str) -> Tuple[Dict, At
         bytecode=contract_data['bytecode']
     )
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = contract_to_deploy.constructor().estimateGas({'from': account})
 
     # unlocking account so we can call constructor of contract.
@@ -89,7 +89,7 @@ def deploy_all_contracts(account: str) -> AttributeDict:
         }
     )
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = erc721_instance.functions.loadPlasmaAddress(tx_receipt_plasma.contractAddress).estimateGas(DEFAULT_FROM)
 
     # unlocking account so we can call contract function.
@@ -103,7 +103,7 @@ def deploy_all_contracts(account: str) -> AttributeDict:
     # asserting the status of response to check if transaction is completed successfully
     assert w3.eth.waitForTransactionReceipt(loadAddressOnERC721).status == 1
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = plasma_instance.functions.setMaturityAndBond(w3.toWei(0.1, 'ether'), 2, 1).estimateGas(DEFAULT_FROM)
 
     # setting the maturity and bond on plasma contract where :
@@ -116,7 +116,7 @@ def deploy_all_contracts(account: str) -> AttributeDict:
     # asserting the status of response to check if transaction is completed successfully
     assert w3.eth.waitForTransactionReceipt(setBondValue).status == 1
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     gas = deployed_contracts.plasma_instance.functions.setAddresses(
         deployed_contracts.erc20_instance.address,
         deployed_contracts.erc721_instance.address,

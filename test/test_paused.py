@@ -10,7 +10,7 @@ def test_paused(setup):
 
     plasma_instance = deployed_contracts.plasma_instance
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     pause_tx = plasma_instance.functions.pause(True).transact(
         {'from': w3.eth.accounts[0]}
     )
@@ -24,7 +24,7 @@ def test_paused(setup):
     with pytest.raises(Exception):
         utils.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     pause_tx = plasma_instance.functions.pause(False).transact(
         {'from': w3.eth.accounts[0]}
     )

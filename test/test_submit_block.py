@@ -15,7 +15,7 @@ def test_successful_block_submition(setup):
     # dummy root hash
     root = w3.soliditySha3(['string'], ['test'])
 
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     submition = plasma_instance.functions.submitBlock(
         1000, root).transact({'from': w3.eth.accounts[0]})
     w3.eth.waitForTransactionReceipt(submition)
@@ -38,7 +38,7 @@ def test_unsuccessful_block_submition(setup):
         gas = plasma_instance.functions.submitBlock(
             0, root).estimateGas({'from': w3.eth.accounts[0]})
 
-        w3.personal.unlockAccount(w3.eth.accounts[0], '')
+        w3.personal.unlockAccount(w3.eth.defaultAccount, '')
         submition = plasma_instance.functions.submitBlock(
             0, root).transact({'from': w3.eth.accounts[0]})
         w3.eth.waitForTransactionReceipt(submition)

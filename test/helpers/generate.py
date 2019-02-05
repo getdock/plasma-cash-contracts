@@ -116,7 +116,7 @@ def block(plasma_instance, token_id, tx_hash, block_number):
     proof = tree.create_merkle_proof(token_id)
 
     # submiting the block to PlasmaContract on-chain
-    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
     submition = plasma_instance.functions.submitBlock(
         block_number, root).transact({'from': w3.eth.accounts[0]})
     # asserting the status of respond to check if transaction is completed
