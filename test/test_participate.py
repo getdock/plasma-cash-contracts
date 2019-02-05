@@ -1,6 +1,6 @@
 import pytest
 
-from fixtures.const import COIN_DENOMINATION, ETHER_NAME, w3
+from helpers.const import COIN_DENOMINATION, ETHER_NAME, w3
 from helpers import utils, erc20
 
 

@@ -1,4 +1,4 @@
-from fixtures.const import DEFAULT_PASSWORD, w3, DEFAULT_FROM
+from helpers.const import DEFAULT_PASSWORD, w3, DEFAULT_FROM
 
 
 # only owner can successfully load plasma address

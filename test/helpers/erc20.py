@@ -1,4 +1,4 @@
-from fixtures.const import w3, DEFAULT_PASSWORD, DEFAULT_FROM
+from helpers.const import w3, DEFAULT_PASSWORD, DEFAULT_FROM
 
 
 # transfer function to handle erc20 transfers to users

@@ -4,7 +4,7 @@ import requests
 from eth_account import Account
 from requests import Response
 
-from fixtures.const import DEFAULT_PASSWORD, PARITY_NODE_URL
+from helpers.const import DEFAULT_PASSWORD, DEFAULT_PARITY_NODE_URL
 
 
 def generate_accounts(amount: int, password: str = DEFAULT_PASSWORD) -> List:
@@ -28,7 +28,7 @@ def generate_accounts(amount: int, password: str = DEFAULT_PASSWORD) -> List:
             "id": i + 1,
             "jsonrpc": "2.0"
         }
-        requests.post(PARITY_NODE_URL, json=payload)
+        requests.post(DEFAULT_PARITY_NODE_URL, json=payload)
         accounts.append(acct)
 
     return accounts
@@ -55,7 +55,7 @@ def send_transaction(address: str, owner: str) -> Response:
         "id": 1,
         "jsonrpc": "2.0"
     }
-    res = requests.post(PARITY_NODE_URL, json=payload)
+    res = requests.post(DEFAULT_PARITY_NODE_URL, json=payload)
     return res
 
 
@@ -75,4 +75,4 @@ def delete_account(account: str, password: str = DEFAULT_PASSWORD) -> Response:
         "id": 2,
         "jsonrpc": "2.0"
     }
-    return requests.post(PARITY_NODE_URL, json=payload)
+    return requests.post(DEFAULT_PARITY_NODE_URL, json=payload)

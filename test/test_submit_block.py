@@ -1,6 +1,6 @@
 import pytest
 
-from fixtures.const import w3, DEFAULT_PASSWORD
+from helpers.const import w3, DEFAULT_PASSWORD
 
 
 # successfully submits a block on-chain

@@ -1,26 +1,22 @@
 import json
 from typing import Tuple, Dict
 
+from web3 import Web3
 from web3.datastructures import AttributeDict
 
-from fixtures.const import w3, PLASMA_CONTRACT_PATH, ERC20_CONTRACT_PATH, DOCK_PLASMA_CONTRACT_PATH, \
-    CHECKS_CONTRACT_PATH, DEFAULT_FROM
-
-"""
-    deployer.py
-        Used to deploy all contracts needed to make this whole poc work.
-        Also deployer handles linking all contracts together.
-"""
+from helpers.const import ERC20_CONTRACT_PATH, CHECKS_CONTRACT_PATH, DOCK_PLASMA_CONTRACT_PATH, PLASMA_CONTRACT_PATH, \
+    DEFAULT_FROM
 
 
-def deploy_contract(compiled_contract_path: str, account: str) -> Tuple[Dict, AttributeDict]:
+def deploy_contract(compiled_contract_path: str, w3: Web3) -> Tuple[Dict, AttributeDict]:
     """
-    Deploy the given compiled contract using the given account.
-    
+    Deploy the given compiled contract using the default account in the given Web3 instance.
+
     :param compiled_contract_path: path to the compiled contract in json format
-    :param account: account to use
+    :param w3: Web3 instance to use
     :return: transaction receipt
     """
+    account = w3.eth.defaultAccount
     with open(compiled_contract_path) as f:
         contract_data = json.load(f)
 
@@ -48,17 +44,18 @@ def deploy_contract(compiled_contract_path: str, account: str) -> Tuple[Dict, At
     return contract_data, tx_receipt_contract
 
 
-def deploy_all_contracts(account: str) -> AttributeDict:
+def deploy_all_contracts(w3: Web3) -> AttributeDict:
     """
-    Deploy all contracts needed in this POC.
+    Deploy all contracts needed for this POC.
 
-    :param account: account to use
+    :param w3: w3 instance to use
     :return: AttributeDict with web3.utils.datatypes.Contract instances of the deployed contracts
     """
-    erc_data, tx_receipt_ERC20 = deploy_contract(ERC20_CONTRACT_PATH, account)
-    do_checks_data, tx_receipt_checks = deploy_contract(CHECKS_CONTRACT_PATH, account)
-    erc721_data, tx_receipt_erc721 = deploy_contract(DOCK_PLASMA_CONTRACT_PATH, account)
-    plasma_data, tx_receipt_plasma = deploy_contract(PLASMA_CONTRACT_PATH, account)
+    account = w3.eth.defaultAccount
+    erc_data, tx_receipt_ERC20 = deploy_contract(ERC20_CONTRACT_PATH, w3)
+    do_checks_data, tx_receipt_checks = deploy_contract(CHECKS_CONTRACT_PATH, w3)
+    erc721_data, tx_receipt_erc721 = deploy_contract(DOCK_PLASMA_CONTRACT_PATH, w3)
+    plasma_data, tx_receipt_plasma = deploy_contract(PLASMA_CONTRACT_PATH, w3)
 
     erc20_instance = w3.eth.contract(
         address=tx_receipt_ERC20.contractAddress,

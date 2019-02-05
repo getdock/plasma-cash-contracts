@@ -3,16 +3,14 @@ import random
 import rlp
 from hexbytes import HexBytes
 
-from fixtures.const import w3, DEFAULT_PASSWORD
+from helpers.const import w3, DEFAULT_PASSWORD
 from helpers.sparse_merkle_tree import SparseMerkleTree
 
 
-# account password
-
-# function to generate dummy tx that will be included in sparse merkle tree.
-# The reason of generating dummy tx is just so we wont have a sparse merkle
-# tree containing only one transaction.
 def generate_dummy_txs():
+    # function to generate dummy tx that will be included in sparse merkle tree.
+    # The reason of generating dummy tx is just so we wont have a sparse merkle
+    # tree containing only one transaction.
     uid = random.getrandbits(64)
     prevBlock = 5
     deno = 20
@@ -29,14 +27,14 @@ def generate_dummy_txs():
     return tx
 
 
-# function used to generate tx that will be used off-chain to initiate transactions
-# which also be used to exit or challenge a coin.
-# token_id: token_id of the token we want to generate tx for.
-# prevBlock: prevBlock of the token.
-# denomination: denomination of token.
-# to: address where token is being send
-# address: the initiater of transaction
-def tx(token_id, prevBlock, denomination, to, address):
+def generate_tx(token_id, prevBlock, denomination, to, address):
+    # function used to generate tx that will be used off-chain to initiate transactions
+    # which also be used to exit or challenge a coin.
+    # token_id: token_id of the token we want to generate tx for.
+    # prevBlock: prevBlock of the token.
+    # denomination: denomination of token.
+    # to: address where token is being send
+    # address: the initiater of transaction
     # rlp encoded transaction
     tx = rlp.encode([token_id, prevBlock, denomination, bytes.fromhex(to[2:])])
 
@@ -83,20 +81,20 @@ def tx(token_id, prevBlock, denomination, to, address):
         return tx
 
 
-# def block
-# function that is used to generate blocks which will be included in PlasmaContract on-chain
-# token_id: the token id which will be the key on smt.
-# tx_hash: transaction hash of the transaction which will be the value of the token_id on smt.
-# block_number: the block number which will be submited to PlasmaContract.
-def block(plasma_instance, token_id, tx_hash, block_number):
+def generate_block(plasma_instance, token_id, tx_hash, block_number):
+    # def block
+    # function that is used to generate blocks which will be included in PlasmaContract on-chain
+    # token_id: the token id which will be the key on smt.
+    # tx_hash: transaction hash of the transaction which will be the value of the token_id on smt.
+    # block_number: the block number which will be submited to PlasmaContract.
     """
 
-    :param plasma_instance:
-    :param token_id:
-    :param tx_hash:
-    :param block_number:
-    :return:
-    """
+        :param plasma_instance:
+        :param token_id:
+        :param tx_hash:
+        :param block_number:
+        :return:
+        """
     dummy_txs = []
     hashes = {token_id: tx_hash}
 

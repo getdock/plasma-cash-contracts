@@ -1,4 +1,4 @@
-from fixtures.const import w3, DEFAULT_BOND, DEFAULT_FROM, DEFAULT_PASSWORD
+from helpers.const import w3, DEFAULT_BOND, DEFAULT_FROM, DEFAULT_PASSWORD
 
 
 # testing setMaturityAndBond function on PlasmaContract
