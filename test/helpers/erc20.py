@@ -1,16 +1,12 @@
-from fixtures.const import w3, DEFAULT_PASSWORD
-from helpers import estimate_gas
+from fixtures.const import w3, DEFAULT_PASSWORD, DEFAULT_FROM
 
 
 # transfer function to handle erc20 transfers to users
 # address: the address where tokens are being transafered.
 # amount: the amount that we want to trasnfer
 def transfer(address, amount, erc20_instance):
-    # estimating function gas cost
-    gas = estimate_gas.erc20Transfer(erc20_instance, address, amount)
-
-    # unlocking account so we can call functions
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = erc20_instance.functions.transfer(address, amount).estimateGas(DEFAULT_FROM)
 
     # calling transfer function on erc20 contract.
     transfer1 = erc20_instance.functions.transfer(
@@ -28,25 +24,22 @@ def transfer(address, amount, erc20_instance):
 
 
 # approve function to handle approves on erc20 contract
-# approveAddress : the address we want to approve
+# approve_address : the address we want to approve
 # address : approver(owner of erc20 tokens)
 # amount: amount to approve
-def approve(approveAddress, address, amount, erc20_instance):
-    # estimating function gas cost
-    gas = estimate_gas.erc20Approve(erc20_instance, approveAddress, address, amount)
-
-    # unlocking account so we can call functions
+def approve(approve_address, address, amount, erc20_instance):
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
+    gas = erc20_instance.functions.approve(approve_address, amount).estimateGas({'from': address})
 
     # calling approve function on erc20 contract.
     approve1 = erc20_instance.functions.approve(
-        approveAddress, amount).transact({'from': address, 'gas': gas})
+        approve_address, amount).transact({'from': address, 'gas': gas})
 
     # asserting the status of respond to check if transaction is completed successfully
     assert w3.eth.waitForTransactionReceipt(approve1).status == 1
 
     # checking if amount was approved correctly.
-    allowance = erc20_instance.functions.allowance(address, approveAddress).call()
+    allowance = erc20_instance.functions.allowance(address, approve_address).call()
     assert allowance == amount
 
     # returning amount approved

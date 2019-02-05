@@ -1,5 +1,4 @@
-from fixtures.const import ETHER_NAME, DEFAULT_PASSWORD, w3
-from helpers import estimate_gas
+from fixtures.const import w3, DEFAULT_BOND, DEFAULT_FROM
 
 
 # testing setMaturityAndBond function on PlasmaContract
@@ -8,12 +7,11 @@ def test_maturity_and_bond(setup):
     # getting plasma_instance set by deployer
     plasma_instance = deployed_contracts.plasma_instance
 
-    # getting gas cost on setMaturityAndBond function
-    gas = estimate_gas.setMaturityAndBond(plasma_instance)
-
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.setMaturityAndBond(DEFAULT_BOND, 2, 1).estimateGas(DEFAULT_FROM)
+
     bond = plasma_instance.functions.setMaturityAndBond(
-        w3.toWei(0.1, ETHER_NAME),
+        DEFAULT_BOND,
         2,
         1
     ).transact(
@@ -24,7 +22,7 @@ def test_maturity_and_bond(setup):
     maturity_period, challenge_window, bond = plasma_instance.functions.getMaturityAndBond().call()
 
     assert tx_receipt.status == 1
-    assert bond == w3.toWei(0.1, ETHER_NAME)
+    assert bond == DEFAULT_BOND
     assert maturity_period == 2
     assert challenge_window == 1
 
@@ -38,12 +36,11 @@ def test_unsuccessful_maturity_and_bond(setup):
     # getting plasma_instance set by deployer
     plasma_instance = deployed_contracts.plasma_instance
 
-    # getting gas cost on setMaturityAndBond function
-    gas = estimate_gas.setMaturityAndBond(plasma_instance)
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.setMaturityAndBond(DEFAULT_BOND, 2, 1).estimateGas(DEFAULT_FROM)
 
-    w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
     bond = plasma_instance.functions.setMaturityAndBond(
-        w3.toWei(0.1, ETHER_NAME),
+        DEFAULT_BOND,
         2,
         1
     ).transact(

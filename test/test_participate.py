@@ -1,7 +1,7 @@
 import pytest
 
 from fixtures.const import COIN_DENOMINATION, ETHER_NAME, w3
-from helpers import participate, erc20
+from helpers import utils, erc20
 
 
 def test_successful_participate(setup):
@@ -21,7 +21,7 @@ def test_successful_participate(setup):
     erc20.transfer(peter_addr, COIN_DENOMINATION, deployed_contracts.erc20_instance)
     erc20.approve(plasma_address, peter_addr, COIN_DENOMINATION, deployed_contracts.erc20_instance)
 
-    coins = participate.participate(deployed_contracts, peter_addr, 1, COIN_DENOMINATION)
+    coins = utils.participate(deployed_contracts, peter_addr, 1, COIN_DENOMINATION)
 
     assert len(coins) == 1
 
@@ -46,7 +46,7 @@ def test_unsuccessful_participate(setup):
     new_denomination = w3.toWei(6000, ETHER_NAME)
 
     with pytest.raises(Exception):
-        participate.participate(deployed_contracts, alice_addr, 1, new_denomination)
+        utils.participate(deployed_contracts, alice_addr, 1, new_denomination)
 
 
 def test_outOfBalance_participate(setup):
@@ -70,4 +70,4 @@ def test_outOfBalance_participate(setup):
     erc20.approve(plasma_address, peter_addr, w3.toWei(5, ETHER_NAME), deployed_contracts.erc20_instance)
 
     with pytest.raises(Exception):
-        participate.participate(deployed_contracts, oscar_addr, 2, deno)
+        utils.participate(deployed_contracts, oscar_addr, 2, deno)

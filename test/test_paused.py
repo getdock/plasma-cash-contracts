@@ -1,7 +1,7 @@
 import pytest
 
 from fixtures.const import ETHER_NAME, COIN_DENOMINATION, w3
-from helpers import participate, erc20
+from helpers import utils, erc20
 
 
 def test_paused(setup):
@@ -22,7 +22,7 @@ def test_paused(setup):
     # it should throw
     # Plasma is paused so no one can participate
     with pytest.raises(Exception):
-        participate.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)
+        utils.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)
 
     w3.personal.unlockAccount(w3.eth.accounts[0], '')
     pause_tx = plasma_instance.functions.pause(False).transact(
@@ -31,4 +31,4 @@ def test_paused(setup):
     w3.eth.waitForTransactionReceipt(pause_tx)
 
     # Plasma now is not paused so every one can participate
-    participate.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)
+    utils.participate(deployed_contracts, alice_addr, 2, COIN_DENOMINATION)

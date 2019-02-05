@@ -3,7 +3,7 @@ from typing import Tuple, List
 import pytest
 
 from fixtures.const import ETHER_NAME, COIN_DENOMINATION, w3
-from helpers import parity, deployer, erc20, participate
+from helpers import parity, deployer, erc20, utils
 
 
 @pytest.fixture(scope='module')
@@ -56,5 +56,5 @@ def participate_account(account_address, deployed_contracts) -> List:
     # tokens will be transfered from her address to plasma_address
     erc20.approve(plasma_address, account_address, w3.toWei(5000000, ETHER_NAME), deployed_contracts.erc20_instance)
     # participating to plasma 10 times with denomination 5000 for each token
-    coins = participate.participate(deployed_contracts, account_address, 10, COIN_DENOMINATION)
+    coins = utils.participate(deployed_contracts, account_address, 10, COIN_DENOMINATION)
     return coins

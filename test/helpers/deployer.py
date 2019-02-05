@@ -4,8 +4,7 @@ from typing import Tuple, Dict
 from web3.datastructures import AttributeDict
 
 from fixtures.const import w3, PLASMA_CONTRACT_PATH, ERC20_CONTRACT_PATH, DOCK_PLASMA_CONTRACT_PATH, \
-    CHECKS_CONTRACT_PATH
-from helpers import estimate_gas
+    CHECKS_CONTRACT_PATH, DEFAULT_FROM
 
 """
     deployer.py
@@ -30,7 +29,7 @@ def deploy_contract(compiled_contract_path: str, account: str) -> Tuple[Dict, At
         bytecode=contract_data['bytecode']
     )
 
-    # get gas cost of constructor
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
     gas = contract_to_deploy.constructor().estimateGas({'from': account})
 
     # unlocking account so we can call constructor of contract.
@@ -90,8 +89,8 @@ def deploy_all_contracts(account: str) -> AttributeDict:
         }
     )
 
-    # getting gas cost of loadAddress function using estimateGas script.
-    gas = estimate_gas.loadAddress(erc721_instance, tx_receipt_plasma.contractAddress)
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = erc721_instance.functions.loadPlasmaAddress(tx_receipt_plasma.contractAddress).estimateGas(DEFAULT_FROM)
 
     # unlocking account so we can call contract function.
     w3.personal.unlockAccount(account, '')
@@ -104,11 +103,8 @@ def deploy_all_contracts(account: str) -> AttributeDict:
     # asserting the status of response to check if transaction is completed successfully
     assert w3.eth.waitForTransactionReceipt(loadAddressOnERC721).status == 1
 
-    # getting gas cost of setMaturityAndBond function using estimateGas script.
-    gas = estimate_gas.setMaturityAndBond(plasma_instance)
-
-    # unlocking account so we can call contract function.
-    w3.personal.unlockAccount(account, '')
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.setMaturityAndBond(w3.toWei(0.1, 'ether'), 2, 1).estimateGas(DEFAULT_FROM)
 
     # setting the maturity and bond on plasma contract where :
     # maturity : is the time that an exit needs to mature in order to be finalized.
@@ -120,9 +116,14 @@ def deploy_all_contracts(account: str) -> AttributeDict:
     # asserting the status of response to check if transaction is completed successfully
     assert w3.eth.waitForTransactionReceipt(setBondValue).status == 1
 
-    # getting gas cost of loadAddressesOnPlasma function using estimateGas script.
-    gas = estimate_gas.load_addresses_on_plasma(deployed_contracts)
-    w3.personal.unlockAccount(account, '')
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = deployed_contracts.plasma_instance.functions.setAddresses(
+        deployed_contracts.erc20_instance.address,
+        deployed_contracts.erc721_instance.address,
+        deployed_contracts.checks_instance.address
+    ).estimateGas(
+        DEFAULT_FROM
+    )
 
     # setting addresses on PlasmaContract which will be used to :
     # erc20: transfer coins from participant to PlasmaContract and vice versa if

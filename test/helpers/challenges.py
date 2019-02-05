@@ -2,8 +2,7 @@ import time
 
 import rlp
 
-from fixtures.const import DEFAULT_PASSWORD, ETHER_NAME, w3
-from helpers import estimate_gas
+from fixtures.const import DEFAULT_PASSWORD, ETHER_NAME, w3, DEFAULT_BOND
 
 """
     challenges.py
@@ -29,28 +28,23 @@ def challenge_before(
         block_number,
         address,
         tx_hash):
-    # getting gas cost of challenge_before using estimateGas script.
-    gas = estimate_gas.challenge_before(
-        plasma_instance,
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.challengeBefore(
         token_id,
         tx_bytes,
         tx_inclusion_proof,
         signature,
-        block_number,
-        address
-    )
+        block_number
+    ).estimateGas({'from': address, 'value': DEFAULT_BOND})
 
-    # unlocking account so we can call function
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
-
-    # calling challenge_before function on PlasmaContract.
     ch = plasma_instance.functions.challengeBefore(
         token_id,
         tx_bytes,
         tx_inclusion_proof,
         signature,
         block_number
-    ).transact({'from': address, 'value': w3.toWei(0.1, ETHER_NAME), 'gas': gas})
+    ).transact({'from': address, 'value': DEFAULT_BOND, 'gas': gas})
 
     # asserting the status of respond to check if transaction is completed successfully
     assert w3.eth.waitForTransactionReceipt(ch).status == 1
@@ -135,19 +129,16 @@ def respondchallenge_before(
         proof,
         signature,
         address):
-    # getting gas cost of respondchallenge_before using estimateGas script.
-    gas = estimate_gas.respondchallenge_before(
-        plasma_instance,
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.respondChallengeBefore(
         token_id,
         challengingtx_hash,
         respondingblock_number,
         respondingTransaction,
         proof,
-        signature,
-        address
-    )
+        signature
+    ).estimateGas({'from': address})
 
-    # unlocking account so we can call contract function
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
 
     # calling respondchallenge_before function on PlasmaContract
@@ -179,21 +170,16 @@ def challenge_after(
         proof,
         signature,
         address):
-    # getting gas cost of challengeAfter using estimateGas script.
-    gas = estimate_gas.challengeAfter(
-        plasma_instance,
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.challengeAfter(
         token_id,
         challengingblock_number,
         challengingTransaction,
         proof,
-        signature,
-        address
-    )
+        signature
+    ).estimateGas({'from': address})
 
-    # unlocking account so we can call function
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
-
-    # calling challengeAfter function on PlasmaContract
     ch = plasma_instance.functions.challengeAfter(
         token_id,
         challengingblock_number,
@@ -230,21 +216,16 @@ def challengeBetween(
         tx_inclusion_proof,
         signature,
         address):
-    # getting gas cost of challengeBetween using estimateGas script.
-    gas = estimate_gas.challengeBetween(
-        plasma_instance,
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.challengeBetween(
         token_id,
         block_number,
         tx_bytes,
         tx_inclusion_proof,
-        signature,
-        address
-    )
+        signature
+    ).estimateGas({'from': address})
 
-    # unlocking account so we can call function
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
-
-    # calling challengeBetween function on PlasmaContract
     ch = plasma_instance.functions.challengeBetween(
         token_id,
         block_number,
@@ -295,15 +276,12 @@ def assertSuccessfulChallenge(plasma_instance, address):
     # balances[0]: bonded amount should be 0
     assert balances[0] == 0
     # balances[1]: withdrawable bond should be 0.1 since challenge was successfull
-    assert balances[1] == w3.toWei(0.1, ETHER_NAME)
+    assert balances[1] == DEFAULT_BOND
 
-    # getting gas cost of function using estimateGas script.
-    gas = estimate_gas.withdrawBonds(plasma_instance, address)
+    w3.personal.unlockAccount(w3.eth.accounts[0], '')
+    gas = plasma_instance.functions.withdrawBonds().estimateGas({'from': address})
 
-    # unlocking account so we can call contract function.
     w3.personal.unlockAccount(address, DEFAULT_PASSWORD)
-
-    # calling withdraw bonds function on contract.
     t = plasma_instance.functions.withdrawBonds().transact(
         {'from': address, 'gas': gas})
 
