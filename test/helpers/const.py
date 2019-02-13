@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from web3 import Web3
 
 
@@ -19,8 +21,22 @@ ERC20_CONTRACT_PATH = 'test/json/contracts/ERC20DockToken.json'
 DOCK_PLASMA_CONTRACT_PATH = 'test/json/contracts/DockPlasmaToken.json'
 CHECKS_CONTRACT_PATH = 'test/json/contracts/DoChecks.json'
 
-w3 = get_w3()
+ETHER_ALLOC = 5_000_000
+TOKEN_ALLOC = 10
 
-COIN_DENOMINATION = w3.toWei(5000, ETHER_NAME)  # denomination of the coin off-chain
-DEFAULT_FROM = {'from': w3.eth.accounts[0]}
-DEFAULT_BOND = w3.toWei(0.1, ETHER_NAME)
+W3 = get_w3()
+
+COIN_DENOMINATION = W3.toWei(5_000, ETHER_NAME)  # denomination of the coin off-chain
+DEFAULT_FROM = {'from': W3.eth.accounts[0]}
+
+BOND_AMOUNT = 0.1
+MATURITY_PERIOD = 2
+CHALLENGE_WINDOW = 1
+DEFAULT_BOND = W3.toWei(BOND_AMOUNT, ETHER_NAME)
+CHALLENGE_PARAMS = OrderedDict([('bond-to-wei',  DEFAULT_BOND),
+                                ('maturity-period', MATURITY_PERIOD),
+                                ('challenge-window', CHALLENGE_WINDOW),
+                                ('bond-amount', BOND_AMOUNT),
+                                ])
+
+BGS_LIMIT = 8_000_000

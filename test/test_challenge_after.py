@@ -1,66 +1,73 @@
+from itertools import count
+
 import pytest
 
 import helpers.events
+import helpers.utils
+from helpers import events, utils
 from helpers.const import COIN_DENOMINATION
-from helpers import generate, events
+
+BLOCK_COUNTER = count(start=1_000, step=1_000)
+COIN_COUNTER = count(start=0, step=1)
 
 
 def test_owned_coin(setup_participate):
-    """Assert the coins returned by participate are created as they should."""
+    '''
+        Assert the coins returned by participate are created as they should.
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     alice_coins = deployed_contracts.erc721_instance.functions.getOwnedTokens(alice_addr).call()
     assert coins == alice_coins
 
 
-def test_challenge_after1(setup_participate):
+def test_challenge_after_1(setup_participate):
     """
-    Challenge After #1
-
-    ___Scenario :
-        bob tries to challenge an Exit that doesnt exist...', 'blue')
-
+    Bob tries to challenge an Exit that doesnt exist
     """
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[0], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[0], 1, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 1
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[0], alice_bob["tx_hash"], 1000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     with pytest.raises(Exception):
-        # bob tries to challenge a non-exiting coin.
+        # bob tries to challenge a non-exiting coin, which should fails
         helpers.events.challenge_after(
             deployed_contracts.plasma_instance,
-            coins[0],
+            coins[token_uid],
             alice_bob["block_number"],
             alice_bob["tx"],
             alice_bob["proof"],
             alice_bob["signature"],
             bob_addr
         )
-        # he fails to challenge a non-exiting coin
 
 
-def test_challenge_after2(setup_participate):
-    """
-    Challenge After #2
+def test_challenge_after_2(setup_participate):
+    '''
+        Oscar tries to a exit a spent coin
 
-    ___Scenario : oscar tries to a exit a spent coin...
-
-        alice legitimately sends coin to bob
-        bob sends coin to oscar
-        oscar sends coin to charlie
-        oscar tries to exit but charlie challenges him and wins.
-    """
-
+        Alice legitimately sends coin to Bob
+        Bob sends coin to Oscar
+        Oscar sends coin to Charlie
+        Oscar tries to exit but Charlie challenges and wins.
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
@@ -68,43 +75,52 @@ def test_challenge_after2(setup_participate):
     charlie_addr = accounts[4].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[1], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = helpers.utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[1], 2, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 2
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[1], alice_bob["tx_hash"], 2000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[1],
+    bob_oscar = utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[1], bob_oscar["tx_hash"], 3000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar sends coin to charlie
-    oscar_charlie = generate.generate_tx(
-        coins[1],
+    oscar_charlie = utils.generate_tx(
+        coins[token_uid],
         bob_oscar["block_number"],
         COIN_DENOMINATION,
         charlie_addr,
         oscar_addr)
 
     # plasma block is generated and submited to mainnet
-    oscar_charlie["proof"], oscar_charlie["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[1], oscar_charlie["tx_hash"], 4000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], oscar_charlie["tx_hash"], block_height)
+    oscar_charlie["proof"], oscar_charlie["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar starts exit with a coin he has sent to charlie
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[1],
+        coins[token_uid],
         alice_bob["tx"],
         bob_oscar["tx"],
         alice_bob["proof"],
@@ -114,27 +130,23 @@ def test_challenge_after2(setup_participate):
         oscar_addr
     )
 
-    # charlie challenges the exit
+    # charlie challenges the exit successfully
     helpers.events.challenge_after(
         deployed_contracts.plasma_instance,
-        coins[1],
+        coins[token_uid],
         oscar_charlie["block_number"],
         oscar_charlie["tx"],
         oscar_charlie["proof"],
         oscar_charlie["signature"],
         charlie_addr
     )
-    # charlie challenges successfully...
 
 
-def test_challenge_after3(setup_participate):
-    """
-    Challenge After #3
-
-    ___Scenario:
+def test_challenge_after_3(setup_participate):
+    '''
         Same as above but with invalid signature provided...
         Thus oscar can exit a double spent coin.
-    """
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
@@ -142,44 +154,53 @@ def test_challenge_after3(setup_participate):
     charlie_addr = accounts[4].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[2], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = helpers.utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[2], 3, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 3
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[2], alice_bob["tx_hash"], 5000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[2],
+    bob_oscar = utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[2], bob_oscar["tx_hash"], 6000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
-    # invalid signature : coins[2], bob_oscar["block_number"], COIN_DENOMINATION, charlie_addr,
+    # invalid signature : coins[token_uid], bob_oscar["block_number"], COIN_DENOMINATION, charlie_addr,
     # --> charlie <-- has to be oscar
-    oscar_charlie = generate.generate_tx(
-        coins[2],
+    oscar_charlie = utils.generate_tx(
+        coins[token_uid],
         bob_oscar["block_number"],
         COIN_DENOMINATION,
         charlie_addr,
         charlie_addr)
 
     # plasma block is generated and submited to mainnet
-    oscar_charlie["proof"], oscar_charlie["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[2], oscar_charlie["tx_hash"], 7000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], oscar_charlie["tx_hash"], block_height)
+    oscar_charlie["proof"], oscar_charlie["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar starts exit...
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[2],
+        coins[token_uid],
         alice_bob["tx"],
         bob_oscar["tx"],
         alice_bob["proof"],
@@ -193,7 +214,7 @@ def test_challenge_after3(setup_participate):
     with pytest.raises(Exception):
         helpers.events.challenge_after(
             deployed_contracts.plasma_instance,
-            coins[2],
+            coins[token_uid],
             oscar_charlie["block_number"],
             oscar_charlie["tx"],
             oscar_charlie["proof"],
@@ -202,17 +223,14 @@ def test_challenge_after3(setup_participate):
         )
 
     # oscar finishes exit
-    events.finish_exit(deployed_contracts, coins[2], oscar_addr)
+    events.finish_exit(deployed_contracts, coins[token_uid], oscar_addr)
 
 
-def test_challenge_after4(setup_participate):
-    """
-    Challenge After #4
-
-    ___Scenario:
+def test_challenge_after_4(setup_participate):
+    '''
         Same as above but with invalid merkle proof provided...
         Thus oscar can exit a double sped coin.
-    """
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
@@ -220,46 +238,55 @@ def test_challenge_after4(setup_participate):
     charlie_addr = accounts[4].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[3], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[3], 4, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 4
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[3], alice_bob["tx_hash"], 8000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[3],
+    bob_oscar = helpers.utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[3], bob_oscar["tx_hash"], 9000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar to charlie transaction
-    oscar_charlie = generate.generate_tx(
-        coins[3],
+    oscar_charlie = utils.generate_tx(
+        coins[token_uid],
         bob_oscar["block_number"],
         COIN_DENOMINATION,
         charlie_addr,
         oscar_addr)
 
-    # invalid merkle proof: generate.block(
-    # deployed_contracts.plasma_instance, plasma_instance, -->coins[1]<-- it has to be coins[3],
-# oscar_charlie["tx_hash"], 10000)
+    # invalid merkle proof: utils.block(
+    # deployed_contracts.plasma_instance, plasma_instance, -->coins[1]<-- it has to be coins[token_uid],
+    # oscar_charlie["tx_hash"], 10000)
     # plasma block is generated and submited to mainnet
-    oscar_charlie["proof"], oscar_charlie["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[1], oscar_charlie["tx_hash"], 10000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[1], oscar_charlie["tx_hash"], block_height)
+    oscar_charlie["proof"], oscar_charlie["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar starts exit...
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[3],
+        coins[token_uid],
         alice_bob["tx"],
         bob_oscar["tx"],
         alice_bob["proof"],
@@ -274,7 +301,7 @@ def test_challenge_after4(setup_participate):
         # charlie challenges oscar_addr, but fails
         helpers.events.challenge_after(
             deployed_contracts.plasma_instance,
-            coins[3],
+            coins[token_uid],
             oscar_charlie["block_number"],
             oscar_charlie["tx"],
             oscar_charlie["proof"],
@@ -284,17 +311,14 @@ def test_challenge_after4(setup_participate):
         # Invalid merkle proof provided!
 
     # oscar finishes exit
-    events.finish_exit(deployed_contracts, coins[3], oscar_addr)
+    events.finish_exit(deployed_contracts, coins[token_uid], oscar_addr)
 
 
-def test_challenge_after5(setup_participate):
-    """
-    Challenge After #5
-
-    ___Scenario:
+def test_challenge_after_5(setup_participate):
+    '''
         Same as above but with invalid tx provided...
         Thus oscar can exit a double spend coin.
-    """
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
@@ -302,42 +326,51 @@ def test_challenge_after5(setup_participate):
     charlie_addr = accounts[4].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[4], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[4], 5, COIN_DENOMINATION, bob_addr, alice_addr)
-    # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[4], alice_bob["tx_hash"], 11000)
+    # previous_block = 5
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
+
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[4],
+    bob_oscar = helpers.utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[4], bob_oscar["tx_hash"], 12000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar sends coin to charlie
-    oscar_charlie = generate.generate_tx(
-        coins[4],
+    oscar_charlie = helpers.utils.generate_tx(
+        coins[token_uid],
         bob_oscar["block_number"],
         COIN_DENOMINATION,
         charlie_addr,
         oscar_addr)
 
     # plasma block is generated and submited to mainnet
-    oscar_charlie["proof"], oscar_charlie["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[4], oscar_charlie["tx_hash"], 13000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], oscar_charlie["tx_hash"], block_height)
+    oscar_charlie["proof"], oscar_charlie["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar starts exit...
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[4],
+        coins[token_uid],
         alice_bob["tx"],
         bob_oscar["tx"],
         alice_bob["proof"],
@@ -352,7 +385,7 @@ def test_challenge_after5(setup_participate):
         # charlie challenges oscar but fails
         helpers.events.challenge_after(
             deployed_contracts.plasma_instance,
-            coins[4],
+            coins[token_uid],
             oscar_charlie["block_number"],
             bob_oscar["tx"],  # invalid tx provided, it has to be oscar_charlie["tx"]
             oscar_charlie["proof"],
@@ -361,16 +394,13 @@ def test_challenge_after5(setup_participate):
         )
 
     # oscar finishes exit
-    events.finish_exit(deployed_contracts, coins[4], oscar_addr)
+    events.finish_exit(deployed_contracts, coins[token_uid], oscar_addr)
 
 
-def test_challenge_after6(setup_participate):
-    """
-    Challenge After #6
-
-    ___Scenario:
+def test_challenge_after_6(setup_participate):
+    '''
         No one challenges oscar so he can exit a double spend coin.
-    """
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
@@ -378,43 +408,52 @@ def test_challenge_after6(setup_participate):
     charlie_addr = accounts[4].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[5], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = helpers.utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[5], 6, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 6
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[5], alice_bob["tx_hash"], 14000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[5],
+    bob_oscar = helpers.utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[5], bob_oscar["tx_hash"], 15000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar sends coin to charlie
-    oscar_charlie = generate.generate_tx(
-        coins[5],
+    oscar_charlie = helpers.utils.generate_tx(
+        coins[token_uid],
         bob_oscar["block_number"],
         COIN_DENOMINATION,
         charlie_addr,
         oscar_addr)
 
     # plasma block is generated and submited to mainnet
-    oscar_charlie["proof"], oscar_charlie["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[5], oscar_charlie["tx_hash"], 16000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], oscar_charlie["tx_hash"], block_height)
+    oscar_charlie["proof"], oscar_charlie["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar starts exit...
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[5],
+        coins[token_uid],
         alice_bob["tx"],
         bob_oscar["tx"],
         alice_bob["proof"],
@@ -425,48 +464,52 @@ def test_challenge_after6(setup_participate):
     )
 
     # oscar finishes exit
-    events.finish_exit(deployed_contracts, coins[5], oscar_addr)
+    events.finish_exit(deployed_contracts, coins[token_uid], oscar_addr)
 
 
-def test_challenge_after7(setup_participate):
-    """
-    Challenge After #7
-
-    ___Scenario :
-        Cannot challenge with earlier tx...
-
-    """
+def test_challenge_after_7(setup_participate):
+    '''
+        Cannot challenge with earlier tx
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[6], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = helpers.utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[6], 7, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 7
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[6], alice_bob["tx_hash"], 17000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[6],
+    bob_oscar = helpers.utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[6], bob_oscar["tx_hash"], 18000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar starts exit...
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[6],
+        coins[token_uid],
         alice_bob["tx"],
         bob_oscar["tx"],
         alice_bob["proof"],
@@ -481,7 +524,7 @@ def test_challenge_after7(setup_participate):
         # bob challenge oscar's exit
         helpers.events.challenge_after(
             deployed_contracts.plasma_instance,
-            coins[6],
+            coins[token_uid],
             alice_bob["block_number"],
             alice_bob["tx"],
             alice_bob["proof"],
@@ -491,49 +534,52 @@ def test_challenge_after7(setup_participate):
         # he fails because he challenged with earlier tx!
 
     # oscar finishes exit
-    events.finish_exit(deployed_contracts, coins[6], oscar_addr)
+    events.finish_exit(deployed_contracts, coins[token_uid], oscar_addr)
 
 
-def test_challenge_after8(setup_participate):
-    """
-
-    Challenge after #8
-
-    ___Scenario :
-        Can challenge with an direct spend
-
-    """
+def test_challenge_after_8(setup_participate):
+    '''
+        challenge with a direct spend
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
     oscar_addr = accounts[3].address
 
     # deposit tx of alice
-    alice_alice = generate.generate_tx(coins[7], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = helpers.utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[7], 8, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 8
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[7], alice_bob["tx_hash"], 19000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[7],
+    bob_oscar = helpers.utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[7], bob_oscar["tx_hash"], 20000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # bob starts exit
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[7],
+        coins[token_uid],
         alice_alice["tx"],
         alice_bob["tx"],
         '0x',
@@ -546,7 +592,7 @@ def test_challenge_after8(setup_participate):
     # oscar challenges bob...
     helpers.events.challenge_after(
         deployed_contracts.plasma_instance,
-        coins[7],
+        coins[token_uid],
         bob_oscar["block_number"],
         bob_oscar["tx"],
         bob_oscar["proof"],
@@ -556,11 +602,10 @@ def test_challenge_after8(setup_participate):
     # oscar challenges successfully
 
 
-def test_challenge_after9(setup_participate):
-    """
-    Challenge after #9
-    ___Scenario : Cannot challenge with non-direct spend
-    """
+def test_challenge_after_9(setup_participate):
+    '''
+        Cannot challenge with non-direct spend
+    '''
     accounts, deployed_contracts, coins = setup_participate
     alice_addr = accounts[1].address
     bob_addr = accounts[2].address
@@ -568,43 +613,52 @@ def test_challenge_after9(setup_participate):
     charlie_addr = accounts[4].address
 
     # alice deposit transaction
-    alice_alice = generate.generate_tx(coins[8], 0, COIN_DENOMINATION, alice_addr, alice_addr)
+    token_uid = next(COIN_COUNTER)
+    previous_block = 0
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, alice_addr, alice_addr)
+    alice_alice = helpers.utils.generate_tx(*args)
 
     # alice sends coin to bob
-    alice_bob = generate.generate_tx(coins[8], 9, COIN_DENOMINATION, bob_addr, alice_addr)
+    # previous_block = 9
+    previous_block = deployed_contracts.plasma_instance.functions.getPlasmaCoin(coins[token_uid]).call()[1]
+    args = (coins[token_uid], previous_block, COIN_DENOMINATION, bob_addr, alice_addr)
+    alice_bob = helpers.utils.generate_tx(*args)
 
     # plasma block is generated and submited to mainnet
-    alice_bob["proof"], alice_bob["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[8], alice_bob["tx_hash"], 21000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], alice_bob["tx_hash"], block_height)
+    alice_bob["proof"], alice_bob["block_number"] = helpers.utils.generate_block(*args)
 
     # bob sends coin to oscar
-    bob_oscar = generate.generate_tx(
-        coins[8],
+    bob_oscar = helpers.utils.generate_tx(
+        coins[token_uid],
         alice_bob["block_number"],
         COIN_DENOMINATION,
         oscar_addr,
         bob_addr)
 
     # plasma block is generated and submited to mainnet
-    bob_oscar["proof"], bob_oscar["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[8], bob_oscar["tx_hash"], 22000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], bob_oscar["tx_hash"], block_height)
+    bob_oscar["proof"], bob_oscar["block_number"] = helpers.utils.generate_block(*args)
 
     # oscar sends coin to charlie
-    oscar_charlie = generate.generate_tx(
-        coins[8],
+    oscar_charlie = helpers.utils.generate_tx(
+        coins[token_uid],
         bob_oscar["block_number"],
         COIN_DENOMINATION,
         charlie_addr,
         oscar_addr)
 
     # plasma block is generated and submited to mainnet
-    oscar_charlie["proof"], oscar_charlie["block_number"] = generate.generate_block(
-        deployed_contracts.plasma_instance, coins[8], oscar_charlie["tx_hash"], 23000)
+    block_height = next(BLOCK_COUNTER)
+    args = (deployed_contracts.plasma_instance, coins[token_uid], oscar_charlie["tx_hash"], block_height)
+    oscar_charlie["proof"], oscar_charlie["block_number"] = helpers.utils.generate_block(*args)
 
     # bob starts exit
     events.start_exit(
         deployed_contracts.plasma_instance,
-        coins[8],
+        coins[token_uid],
         alice_alice["tx"],
         alice_bob["tx"],
         '0x',
@@ -618,7 +672,7 @@ def test_challenge_after9(setup_participate):
         # charlie challenges bob
         helpers.events.challenge_after(
             deployed_contracts,
-            coins[8],
+            coins[token_uid],
             oscar_charlie["block_number"],
             oscar_charlie["tx"],
             oscar_charlie["proof"],
@@ -628,4 +682,4 @@ def test_challenge_after9(setup_participate):
         # Cannot challenge with non-direct spend.
 
     # bob finishes exit
-    events.finish_exit(deployed_contracts, coins[8], bob_addr)
+    events.finish_exit(deployed_contracts, coins[token_uid], bob_addr)

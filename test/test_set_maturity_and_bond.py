@@ -1,55 +1,47 @@
-from helpers.const import w3, DEFAULT_BOND, DEFAULT_FROM, DEFAULT_PASSWORD
+from helpers.const import (CHALLENGE_PARAMS, DEFAULT_BOND, DEFAULT_FROM,
+                           DEFAULT_PASSWORD)
+from helpers.const import W3 as w3
 
 
-# testing setMaturityAndBond function on PlasmaContract
 def test_maturity_and_bond(setup):
-    accounts, deployed_contracts = setup
-    # getting plasma_instance set by deployer
+    '''
+        test setMaturityAndBond function
+    '''
+    _, deployed_contracts = setup
     plasma_instance = deployed_contracts.plasma_instance
 
-    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
-    gas = plasma_instance.functions.setMaturityAndBond(DEFAULT_BOND, 2, 1).estimateGas(DEFAULT_FROM)
+    args = (CHALLENGE_PARAMS['bond-to-wei'], CHALLENGE_PARAMS['maturity-period'], CHALLENGE_PARAMS['challenge-window'])
+    kwargs = {'from': w3.eth.accounts[0]}
 
-    bond = plasma_instance.functions.setMaturityAndBond(
-        DEFAULT_BOND,
-        2,
-        1
-    ).transact(
-        {'from': w3.eth.accounts[0]}
-    )
-    tx_receipt = w3.eth.waitForTransactionReceipt(bond)
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
+    fn_set = plasma_instance.functions.setMaturityAndBond(*args)
+    kwargs['gas'] = fn_set.estimateGas(kwargs)
+    tx_hash = fn_set.transact(kwargs)
+    assert w3.eth.waitForTransactionReceipt(tx_hash).status
 
     maturity_period, challenge_window, bond = plasma_instance.functions.getMaturityAndBond().call()
-
-    assert tx_receipt.status == 1
-    assert bond == DEFAULT_BOND
-    assert maturity_period == 2
-    assert challenge_window == 1
+    assert bond == CHALLENGE_PARAMS['bond-to-wei']
+    assert maturity_period == CHALLENGE_PARAMS['maturity-period']
+    assert challenge_window == CHALLENGE_PARAMS['challenge-window']
 
 
-# testing unsuccessful set of maturityAndbond since function can be called only
-# by the owner and not by pariticipants.
 def test_unsuccessful_maturity_and_bond(setup):
+    '''
+        failed setMaturityAndBond since function can only be called by the
+        contract owner
+    '''
     accounts, deployed_contracts = setup
     alice_addr = accounts[1].address
-
-    # getting plasma_instance set by deployer
     plasma_instance = deployed_contracts.plasma_instance
 
+    args = (CHALLENGE_PARAMS['bond-to-wei'], CHALLENGE_PARAMS['maturity-period'], CHALLENGE_PARAMS['challenge-window'])
+    kwargs = {'from': w3.eth.accounts[0]}
+
     w3.personal.unlockAccount(w3.eth.defaultAccount, '')
-    gas = plasma_instance.functions.setMaturityAndBond(DEFAULT_BOND, 2, 1).estimateGas(DEFAULT_FROM)
+    fn_set = plasma_instance.functions.setMaturityAndBond(*args)
+    gas = fn_set.estimateGas(kwargs)
 
+    kwargs = {'from': alice_addr, 'gas': gas}
     w3.personal.unlockAccount(alice_addr, DEFAULT_PASSWORD)
-    bond = plasma_instance.functions.setMaturityAndBond(
-        DEFAULT_BOND,
-        2,
-        1
-    ).transact(
-        {'from': alice_addr, 'gas': gas}
-    )
-    tx_receipt = w3.eth.waitForTransactionReceipt(bond)
-
-    maturity_period, challenge_window, bond = plasma_instance.functions.getMaturityAndBond().call()
-
-    # respond status should be 0 since contract throws 
-    assert tx_receipt.status == 0
+    tx_hash = fn_set.transact(kwargs)
+    assert w3.eth.waitForTransactionReceipt(tx_hash).status == 0

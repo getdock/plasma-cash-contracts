@@ -1,11 +1,12 @@
 import json
-from typing import Tuple, Dict
+from typing import Dict, Tuple
 
 from web3 import Web3
 from web3.datastructures import AttributeDict
 
-from helpers.const import ERC20_CONTRACT_PATH, CHECKS_CONTRACT_PATH, DOCK_PLASMA_CONTRACT_PATH, PLASMA_CONTRACT_PATH, \
-    DEFAULT_FROM
+from helpers.const import (CHALLENGE_PARAMS, CHECKS_CONTRACT_PATH,
+                           DEFAULT_FROM, DOCK_PLASMA_CONTRACT_PATH,
+                           ERC20_CONTRACT_PATH, PLASMA_CONTRACT_PATH)
 
 
 def deploy_contract(compiled_contract_path: str, w3: Web3) -> Tuple[Dict, AttributeDict]:
@@ -25,23 +26,15 @@ def deploy_contract(compiled_contract_path: str, w3: Web3) -> Tuple[Dict, Attrib
         bytecode=contract_data['bytecode']
     )
 
+    kwargs = {'from': account}
     w3.personal.unlockAccount(w3.eth.defaultAccount, '')
-    gas = contract_to_deploy.constructor().estimateGas({'from': account})
+    fn_deploy = contract_to_deploy.constructor()
+    kwargs['gas'] = fn_deploy.estimateGas(kwargs)
+    tx_hash = fn_deploy.transact(kwargs)
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    assert tx_receipt.status
 
-    # unlocking account so we can call constructor of contract.
-    w3.personal.unlockAccount(account, '')
-
-    # calling contract constructor which will deploy our contract to TestRPC.
-    tx_hash_contract = contract_to_deploy.constructor().transact(
-        {'from': account, 'gas': gas})
-
-    # tx_receipt_contract is the transaction response we get from TestRPC.
-    tx_receipt_contract = w3.eth.waitForTransactionReceipt(tx_hash_contract)
-
-    # asserting the status of response to check if transaction is completed successfully
-    assert tx_receipt_contract.status == 1
-
-    return contract_data, tx_receipt_contract
+    return contract_data, tx_receipt
 
 
 def deploy_all_contracts(w3: Web3) -> AttributeDict:
@@ -77,6 +70,44 @@ def deploy_all_contracts(w3: Web3) -> AttributeDict:
         abi=do_checks_data['abi'],
     )
 
+    # load address to ERC721 contract
+    args = (tx_receipt_plasma.contractAddress,)
+    kwargs = {'from': account}
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
+    fn_load = erc721_instance.functions.loadPlasmaAddress(*args)
+    kwargs['gas'] = fn_load.estimateGas(kwargs)
+    tx_hash = fn_load.transact(kwargs)
+    assert w3.eth.waitForTransactionReceipt(tx_hash).status
+
+    # set Bond and Maturity params
+    args = (CHALLENGE_PARAMS['bond-to-wei'],
+            CHALLENGE_PARAMS['maturity-period'],
+            CHALLENGE_PARAMS['challenge-window']
+            )
+    kwargs = {'from': account}
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
+    fn_set_params = plasma_instance.functions.setMaturityAndBond(*args)
+    kwargs['gas'] = fn_set_params.estimateGas(kwargs)
+    tx_hash = fn_set_params.transact(kwargs)
+    assert w3.eth.waitForTransactionReceipt(tx_hash).status
+
+    # set contract addresses
+    args = (erc20_instance.address,
+            erc721_instance.address,
+            checks_instance.address)
+    kwargs = {'from': account}
+    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
+    fn_set_addrs = plasma_instance.functions.setAddresses(*args)
+    kwargs['gas'] = fn_set_addrs.estimateGas(kwargs)
+    tx_hash = fn_set_addrs.transact(kwargs)
+    assert w3.eth.waitForTransactionReceipt(tx_hash).status
+
+    # checking if bond is set
+    assert plasma_instance.functions.bond_amount().call() == CHALLENGE_PARAMS['bond-to-wei']
+
+    # checking if plasma address is set
+    assert tx_receipt_plasma.contractAddress == erc721_instance.functions.plasmaAddress().call()
+
     deployed_contracts = AttributeDict(
         {
             "erc20_instance": erc20_instance,
@@ -85,65 +116,5 @@ def deploy_all_contracts(w3: Web3) -> AttributeDict:
             "checks_instance": checks_instance
         }
     )
-
-    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
-    gas = erc721_instance.functions.loadPlasmaAddress(tx_receipt_plasma.contractAddress).estimateGas(DEFAULT_FROM)
-
-    # unlocking account so we can call contract function.
-    w3.personal.unlockAccount(account, '')
-
-    # loading PlasmaContract address to erc721 contract since functions on erc721
-    # are only callable from PlasmaContract.
-    loadAddressOnERC721 = erc721_instance.functions.loadPlasmaAddress(
-        tx_receipt_plasma.contractAddress).transact({'from': account, 'gas': gas})
-
-    # asserting the status of response to check if transaction is completed successfully
-    assert w3.eth.waitForTransactionReceipt(loadAddressOnERC721).status == 1
-
-    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
-    gas = plasma_instance.functions.setMaturityAndBond(w3.toWei(0.1, 'ether'), 2, 1).estimateGas(DEFAULT_FROM)
-
-    # setting the maturity and bond on plasma contract where :
-    # maturity : is the time that an exit needs to mature in order to be finalized.
-    # bond: is the amount of bond(stake) user needs to put in order to start/challenge
-    # and exit.
-    setBondValue = plasma_instance.functions.setMaturityAndBond(w3.toWei(
-        0.1, 'ether'), 2, 1).transact({'from': account, 'gas': gas})
-
-    # asserting the status of response to check if transaction is completed successfully
-    assert w3.eth.waitForTransactionReceipt(setBondValue).status == 1
-
-    w3.personal.unlockAccount(w3.eth.defaultAccount, '')
-    gas = deployed_contracts.plasma_instance.functions.setAddresses(
-        deployed_contracts.erc20_instance.address,
-        deployed_contracts.erc721_instance.address,
-        deployed_contracts.checks_instance.address
-    ).estimateGas(
-        DEFAULT_FROM
-    )
-
-    # setting addresses on PlasmaContract which will be used to :
-    # erc20: transfer coins from participant to PlasmaContract and vice versa if
-    # PlasmaCoin is withdrawn.
-    # erc721: to mint a new coin when user participates
-    #         to trasnfer erc721 token when coin is exited
-    #         to burn erc721 tokens when coin is withdrawn
-    #         to get the amount user ownes
-    tx = plasma_instance.functions.setAddresses(
-        tx_receipt_ERC20.contractAddress,
-        tx_receipt_erc721.contractAddress,
-        tx_receipt_checks.contractAddress).transact(
-        {
-            'from': account,
-            'gas': gas})
-
-    # asserting the status of response to check if transaction is completed successfully
-    assert w3.eth.waitForTransactionReceipt(tx).status == 1
-
-    # checking if bond is set as expected.
-    assert plasma_instance.functions.bond_amount().call() == w3.toWei(0.1, 'ether')
-
-    # checking if plasma address is set as expected in erc721.
-    assert tx_receipt_plasma.contractAddress == erc721_instance.functions.plasmaAddress().call()
 
     return deployed_contracts
