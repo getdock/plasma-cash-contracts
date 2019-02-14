@@ -9,7 +9,7 @@
 - [ ] Clean up lint errors in contracts, including snake case
 - [x] Add compile script    
 - [x] Add deployment script  
-- [ ] Add tests  
+- [x] Add tests  
 - [ ] Add SDK
 
 
